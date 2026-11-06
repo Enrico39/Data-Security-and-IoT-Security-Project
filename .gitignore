@@ -14,8 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Do not ignore lib/: firmware projects may keep source libraries there.
 parts/
 sdist/
 var/
@@ -218,3 +217,86 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# JavaScript / TypeScript frontend (React, Vite)
+node_modules/
+dist-ssr/
+.vite/
+*.tsbuildinfo
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+# Commit package-lock.json, pnpm-lock.yaml, yarn.lock and Python lockfiles.
+
+# Local environment settings (keep sanitized examples)
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.local
+
+# IoT firmware: Arduino / PlatformIO generated output
+.pio/
+.pioenvs/
+.piolibdeps/
+*.elf
+*.hex
+*.uf2
+*.o
+*.a
+# Keep sketches, platformio.ini and source libraries under lib/.
+
+# Solidity / Hardhat generated output
+artifacts/
+cache/
+typechain-types/
+coverage.json
+
+# Local secrets and credentials (including encrypted private keys)
+*.key
+*.sk
+*.p12
+*.pfx
+*.keystore
+secrets/
+# Public certificates (.crt/.pem) are not globally ignored: inspect before committing.
+
+# Local databases and SQLite sidecar files
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
+
+# Runtime data: use these directories for real enrollment and audit data
+runtime/
+biometric_data/
+server_data/
+logs/
+mosquitto.db
+# Keep synthetic test fixtures outside these directories.
+
+# Operating systems and editors
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.swp
+*.swo
+*~
