@@ -13,9 +13,9 @@ Il repository è attualmente nella fase di definizione. Ricavare stack, struttur
 ## Confini architetturali
 
 - Arduino Uno gestisce lettore NFC, tastierino, sensore d'impronta, mini display, rotella e tasto OK.
-- Raspberry Pi 1 verifica le credenziali, applica le policy locali, comanda il LED tramite GPIO e firma gli eventi.
-- Raspberry Pi 2 o PC ospita broker MQTT e backend, verifica e conserva gli eventi e pubblica gli hash dei lotti.
-- Lo smart contract registra gli hash dei lotti tramite un account autorizzato. La decisione di accesso rimane locale al Pi 1.
+- Raspberry Pi Zero W (Pi 1) esegue il servizio locale in Python, verifica le credenziali, applica le policy locali, comanda il LED tramite GPIO e firma gli eventi.
+- Il PC ospita Mosquitto e lo stack MERN. Il backend verifica e conserva gli eventi e pubblica gli hash dei lotti.
+- Il contratto Solidity, sviluppato con Hardhat, registra gli hash dei lotti tramite un account autorizzato. La decisione di accesso rimane locale al Pi 1.
 - Il LED verde rappresenta una finestra di accesso autorizzata di cinque secondi. Gli eventi devono descrivere la simulazione, senza dichiarare un ingresso fisico osservato.
 
 ## Hardware e verifiche aperte
