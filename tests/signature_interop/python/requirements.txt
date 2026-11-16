@@ -1,0 +1,4 @@
+# Librerie per la prova di interoperabilità della firma (lato gateway).
+# Versioni fissate: aggiornarle solo dopo un controllo con pip-audit.
+cryptography==50.0.2   # PyCA: firma ECDSA P-256, chiavi PEM
+rfc8785==0.1.4         # Trail of Bits: JSON Canonicalization Scheme (RFC 8785)

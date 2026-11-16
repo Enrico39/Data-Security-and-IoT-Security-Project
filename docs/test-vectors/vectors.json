@@ -1,0 +1,198 @@
+{
+  "description": "Vettori di prova per la firma degli eventi del gateway (docs/event-schema.md, v0.2). Dati fittizi.",
+  "alg": "ES256",
+  "signature_encoding": "DER, base64 standard",
+  "canonicalization": "RFC 8785 (JCS), UTF-8",
+  "gateway_id": "gw-test-01",
+  "kid": "gw-test-01-k1",
+  "public_key_file": "public_key.pem",
+  "vectors": [
+    {
+      "id": "valid-granted",
+      "description": "Accesso consentito, in turno, online.",
+      "expected": "valid",
+      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"bio\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":true,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"seq\":1,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T08:15:02.120Z\",\"type\":\"ACCESS_GRANTED\",\"v\":1}",
+      "envelope": {
+        "event": {
+          "type": "ACCESS_GRANTED",
+          "seq": 1,
+          "ctx": "unisa-ac/event/v1",
+          "gateway_id": "gw-test-01",
+          "v": 1,
+          "terminal_id": "term-01",
+          "ts": "2026-11-16T08:15:02.120Z",
+          "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
+          "factors": {
+            "pin": "ok",
+            "badge": "ok",
+            "bio": "ok"
+          },
+          "policy_version": 7,
+          "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
+          "online": true
+        },
+        "sig": {
+          "alg": "ES256",
+          "kid": "gw-test-01-k1",
+          "value": "MEUCIENbTzwlIyEI+nayw2GY2LdeKuhlO3nfIuPha62vxYZYAiEArRfDi3+mMZd9PXU52lJ6xhj4gzENCDGVC3RLzzvXHZE="
+        }
+      }
+    },
+    {
+      "id": "valid-denied-out-of-shift",
+      "description": "Accesso negato fuori turno.",
+      "expected": "valid",
+      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"bio\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":true,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"reason\":\"OUT_OF_SHIFT\",\"seq\":2,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T20:41:07.512Z\",\"type\":\"ACCESS_DENIED\",\"v\":1}",
+      "envelope": {
+        "event": {
+          "type": "ACCESS_DENIED",
+          "seq": 2,
+          "ctx": "unisa-ac/event/v1",
+          "gateway_id": "gw-test-01",
+          "v": 1,
+          "terminal_id": "term-01",
+          "ts": "2026-11-16T20:41:07.512Z",
+          "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
+          "factors": {
+            "pin": "ok",
+            "badge": "ok",
+            "bio": "ok"
+          },
+          "policy_version": 7,
+          "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
+          "online": true,
+          "reason": "OUT_OF_SHIFT"
+        },
+        "sig": {
+          "alg": "ES256",
+          "kid": "gw-test-01-k1",
+          "value": "MEUCIGxdFomgvPqI4fGKPPn4RBpucm832lY1qGfj+pvWCZI+AiEA0cODSSUWCx/bhSdfJ7yvF1rQJSOceaEJq2wDbOdUITg="
+        }
+      }
+    },
+    {
+      "id": "valid-granted-offline",
+      "description": "Accesso consentito durante una disconnessione.",
+      "expected": "valid",
+      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"bio\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":false,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"seq\":3,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T09:02:44.003Z\",\"type\":\"ACCESS_GRANTED\",\"v\":1}",
+      "envelope": {
+        "event": {
+          "type": "ACCESS_GRANTED",
+          "seq": 3,
+          "ctx": "unisa-ac/event/v1",
+          "gateway_id": "gw-test-01",
+          "v": 1,
+          "terminal_id": "term-01",
+          "ts": "2026-11-16T09:02:44.003Z",
+          "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
+          "factors": {
+            "pin": "ok",
+            "badge": "ok",
+            "bio": "ok"
+          },
+          "policy_version": 7,
+          "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
+          "online": false
+        },
+        "sig": {
+          "alg": "ES256",
+          "kid": "gw-test-01-k1",
+          "value": "MEQCIAi7YY53nGBq790J2sejQbR7mm89/vjU7mr2odQc0YQAAiApQw5usSyfqPNHASKWx/ESo/K/UCcVwyqhtrtU8L4ziA=="
+        }
+      }
+    },
+    {
+      "id": "invalid-tampered-type",
+      "description": "Diniego trasformato in accesso dopo la firma.",
+      "expected": "invalid",
+      "canonical": null,
+      "envelope": {
+        "event": {
+          "type": "ACCESS_GRANTED",
+          "seq": 2,
+          "ctx": "unisa-ac/event/v1",
+          "gateway_id": "gw-test-01",
+          "v": 1,
+          "terminal_id": "term-01",
+          "ts": "2026-11-16T20:41:07.512Z",
+          "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
+          "factors": {
+            "pin": "ok",
+            "badge": "ok",
+            "bio": "ok"
+          },
+          "policy_version": 7,
+          "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
+          "online": true
+        },
+        "sig": {
+          "alg": "ES256",
+          "kid": "gw-test-01-k1",
+          "value": "MEUCIGxdFomgvPqI4fGKPPn4RBpucm832lY1qGfj+pvWCZI+AiEA0cODSSUWCx/bhSdfJ7yvF1rQJSOceaEJq2wDbOdUITg="
+        }
+      }
+    },
+    {
+      "id": "invalid-wrong-key",
+      "description": "Evento firmato da una chiave diversa da quella registrata.",
+      "expected": "invalid",
+      "canonical": null,
+      "envelope": {
+        "event": {
+          "type": "ACCESS_GRANTED",
+          "seq": 1,
+          "ctx": "unisa-ac/event/v1",
+          "gateway_id": "gw-test-01",
+          "v": 1,
+          "terminal_id": "term-01",
+          "ts": "2026-11-16T08:15:02.120Z",
+          "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
+          "factors": {
+            "pin": "ok",
+            "badge": "ok",
+            "bio": "ok"
+          },
+          "policy_version": 7,
+          "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
+          "online": true
+        },
+        "sig": {
+          "alg": "ES256",
+          "kid": "gw-test-01-k1",
+          "value": "MEQCICSHcnY09zIRwsmwuV/R+NYrgwqBVxepjahkD05x1dvVAiA6+T4rO6R8ujdYRCDQPCJxNTc5sGqrPC/Yz04jhphXuQ=="
+        }
+      }
+    },
+    {
+      "id": "invalid-malformed-signature",
+      "description": "Firma che non è una struttura DER valida.",
+      "expected": "invalid",
+      "canonical": null,
+      "envelope": {
+        "event": {
+          "type": "ACCESS_GRANTED",
+          "seq": 1,
+          "ctx": "unisa-ac/event/v1",
+          "gateway_id": "gw-test-01",
+          "v": 1,
+          "terminal_id": "term-01",
+          "ts": "2026-11-16T08:15:02.120Z",
+          "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
+          "factors": {
+            "pin": "ok",
+            "badge": "ok",
+            "bio": "ok"
+          },
+          "policy_version": 7,
+          "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
+          "online": true
+        },
+        "sig": {
+          "alg": "ES256",
+          "kid": "gw-test-01-k1",
+          "value": "MAVub3QtZGVy"
+        }
+      }
+    }
+  ]
+}
