@@ -20,12 +20,48 @@ Il LED è rosso quando il varco simulato è bloccato. Se il Pi autorizza l'acces
 | Passo | Cosa fa o vede l'utente | Cosa succede nel prototipo |
 | --- | --- | --- |
 | 1. Avvicina il badge | Il display mostra «Avvicina il badge». Il LED è rosso. | Il lettore NFC passa l'UID all'Arduino, che lo inoltra al Pi. Il Pi cerca il badge, controlla che sia attivo e avvia una sessione breve associata all'operatore. |
-| 2. Inserisce il PIN | Digita sul tastierino, vede `••••` e preme OK. Con la rotella può selezionare «Annulla». | L'Arduino invia al Pi il PIN insieme all'ID della sessione sul collegamento seriale locale. Il Pi verifica il PIN e applica il limite ai tentativi. |
+| 2. Inserisce il PIN | Digita sul tastierino, vede `••••` e preme CONFIRM. Il tasto `*` annulla il tentativo. | L'Arduino invia al Pi il PIN insieme all'ID della sessione sul collegamento seriale locale. Il Pi verifica il PIN e applica il limite ai tentativi. |
 | 3. Appoggia il dito | Il display mostra «Appoggia il dito». | Il Pi indica gli slot associati all'operatore del badge. L'utente appoggia il dito una volta. Se il sensore lo consente, confronta il campione con gli slot di quell'operatore. L'Arduino inoltra al Pi l'esito associato alla stessa sessione. |
 | 4. Riceve l'esito | Il display mostra «Accesso consentito» e il LED diventa verde, oppure mostra «Accesso negato» e il LED resta rosso. | Il Pi applica la policy locale, controllando ruolo, turno e revoca. Chiude la sessione dopo la decisione e registra l'esito. |
 | 5. Il terminale torna pronto | Dopo cinque secondi il LED torna rosso e il display torna a «Avvicina il badge». | Il Pi termina la finestra di accesso simulata e il terminale si prepara al tentativo successivo. |
 
-Se il badge espone soltanto un UID statico, l'UID serve a identificare il badge registrato ed è copiabile. Verificheremo se il badge, il lettore e la libreria consentono una **challenge-response crittografica** per autenticare il badge prima di chiedere il PIN. Se è possibile solo leggere l'UID, nella demo possiamo mostrare che presentarne una copia lascia comunque da superare PIN e impronta.
+### Comandi e assegnazione dei pin per l'integrazione
+
+**Decisione concordata il 18 novembre 2026:** lasciare scollegati `BACK` ed
+`ENCODER_PUSH` del modulo display. La rotazione della rotella scorre le voci,
+`CONFIRM` seleziona/conferma e `*` del tastierino torna indietro nei menu o
+annulla il tentativo di accesso. La pressione della rotella non esegue azioni.
+Il tasto `*` rimane collegato: eliminarne l'uso non libererebbe un pin della
+matrice 3×4.
+
+Badge → PIN → impronta → decisione del Pi resta il flusso previsto. Durante
+un tentativo, `*` deve annullare anche l'attesa dell'impronta: il Pi invalida
+la sessione e rifiuta eventuali risultati tardivi. Questa gestione deve essere
+implementata nel firmware/servizio integrato; non è ancora una prova superata.
+
+La mappa per la prova integrata usa tutti i **18 GPIO disponibili** dopo aver
+riservato D0/D1 alla UART collegata al convertitore USB–seriale dell'Uno.
+Arduino e Pi si collegano con il cavo USB, senza fili UART aggiuntivi. A0–A3
+sono usati come digitali e A4/A5 per il display; i connettori SDA/SCL duplicano
+A4/A5 e non aggiungono pin. I LED del varco rimangono sul Pi.
+
+Mappa, alimentazione e schemi in
+[docs/hardware/terminal_integration.md](docs/hardware/terminal_integration.md).
+La navigazione è concordata; il cablaggio completo è un piano da validare,
+non un'integrazione già provata. Occorrono firmware unico, verifica del budget
+di corrente e dei livelli del sensore effettivo, e prove di convivenza fra
+SoftwareSerial, display e interrupt dell'encoder. Gli sketch isolati non
+devono essere caricati con tutti i dispositivi collegati secondo questa mappa.
+
+L'UID identifica il badge registrato ma non ne dimostra il possesso esclusivo.
+Il 18 novembre 2026 è stata verificata sui due supporti disponibili la
+**challenge-response MIFARE Classic con Crypto1**, tramite RC522 MINI e
+libreria MFRC522. La prova supera la sola lettura UID, ma Crypto1 è compromesso
+e la chiave di fabbrica usata è pubblica: non è dimostrato un fattore di
+possesso robusto. L'inserimento di questo controllo nel flusso prima del PIN
+resta da decidere e implementare; il flusso della tabella descrive ancora la
+base con identificazione UID. Risultati, limiti e punti aperti sono riportati
+nella sezione [Stato della challenge e delle chiavi del badge](#stato-della-challenge-e-delle-chiavi-del-badge).
 
 ## Responsabilità hardware
 
@@ -109,7 +145,7 @@ Le linee guida precedenti costituiscono la base attuale: MQTT con mTLS, firme EC
 | **Essenziale** | Inventario hardware, lettura del badge e confronto 1:1, stack minimo sul Pi e sul backend, firma degli eventi, mTLS MQTT, protezione del PIN, piattaforma del contratto e rete per eseguirlo. |
 | **Da definire durante l'implementazione** | Formato dei messaggi, versioni delle librerie, QoS, frequenza dei lotti, parametri Argon2id e gestione dei certificati. |
 | **Dipende dal perimetro fisico** | Cifratura autenticata della seriale Arduino-Pi. La decisione dipende da chi può leggere o modificare il traffico sul cavo. |
-| **Verifica aperta** | Challenge crittografica del badge. L'UID basta a identificare il badge nella prima demo; la challenge serve a dimostrare il possesso crittografico. |
+| **Verificato con limiti; decisione aperta** | Challenge-response Crypto1 riuscita sui due supporti disponibili. Restano aperti ruolo nella demo, gestione delle chiavi e necessità di hardware/protocollo con autenticazione moderna. Il risultato non dimostra resistenza alla clonazione. |
 
 ### Opzioni facoltative
 
@@ -162,7 +198,7 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 | Argomento                   | Domande per il gruppo                                            | Vincoli o alternative da valutare                                                                                                                                        | Decisione del gruppo                                                                                                                                                                                                                                                                                       |
 | --------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Inventario hardware | Quali modelli e quantità abbiamo? | Elegoo Uno R3, due Raspberry Pi Zero W, lettore SPI MFRC522, sensore ottico AS608, tastierino 3×4, display OLED I²C con rotella e tasto OK, LED RGB. | Inventario rilevato. Mappare pin e verificare livelli elettrici prima del cablaggio completo. |
-| Badge | Leggiamo l'UID o possiamo autenticare il badge? | Usare DumpInfo per il primo test e verificare separatamente la challenge. | Chip del badge da identificare quando disponibile. |
+| Badge | Quale autenticazione dimostriamo e quali garanzie dichiariamo? | UID e autenticazione di settore Crypto1 provati con gli sketch in `tests/test_rc522*`. Chiave di fabbrica pubblica; Crypto1 compromesso. | **Verificato il 18 novembre 2026** su entrambi i supporti: classificazione MIFARE 1KB e autenticazione del settore 1. Modelli esatti, cambio chiavi e impiego nel flusso completo restano da verificare/decidere. |
 | Biometria | Quanti template associare a ogni operatore? | Partire da un template per operatore, acquisito seguendo la procedura del modulo. Provare 2 e poi fino a 5 solo se riducono i rifiuti legittimi in misura utile. Verificare sul modello reale capacità, confronto mirato agli slot dell’operatore, latenza e cancellazione. | Numero di slot da confermare con prove hardware. |
 | Firmware | Come sviluppiamo per l'Uno? | C/C++ e librerie compatibili con l'hardware. | **Arduino IDE confermato.** |
 | Servizio locale sul Pi | Quale linguaggio gestisce seriale, sessioni, policy e LED? | Python per seriale, GPIO, SQLite, verifica PIN, firma e MQTT. | **Python confermato.** Provare installazione delle librerie e prestazioni sul Pi Zero W. |
@@ -175,9 +211,42 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 
 #### Prime prove hardware
 
-1. **Badge RC522.** Verificare pin, alimentazione e livelli logici. Nell'Arduino IDE caricare [DumpInfo](https://github.com/miguelbalboa/rfid/tree/master/examples/DumpInfo), aprire il monitor seriale e annotare UID e tipo PICC. La lettura UID è la prima prova. Per il challenge-response verificare chip e libreria a parte. La libreria MFRC522 standard non implementa l'autenticazione AES dei DESFire. [Libreria MFRC522](https://github.com/miguelbalboa/rfid)
+1. **Badge RC522 — prove eseguite con limiti.** Con tre partitori sulle uscite dell'Uno sono riusciti il test SPI, la lettura UID/tipo PICC e l'autenticazione Crypto1 sui due supporti disponibili. Sketch in `tests/test_rc522_spi`, `tests/test_rc522` e `tests/test_rc522_auth`; cablaggio in [docs/hardware/rc522_mini_breadboard.md](docs/hardware/rc522_mini_breadboard.md). Restano aperti identificazione esatta dei chip, misure elettriche, stabilità prolungata, gestione delle chiavi e integrazione. La libreria MFRC522 standard non implementa l'autenticazione AES/3DES dei DESFire. [Libreria MFRC522](https://github.com/miguelbalboa/rfid)
 2. **Impronta AS608.** Registrare due template distinti dello stesso dito in due slot. Durante il tentativo acquisire il dito una volta, estrarre le caratteristiche in un buffer e caricare nell'altro, in sequenza, i template associati all'operatore. Provare il confronto dopo ogni caricamento, verificando che il campione sia riutilizzabile e che un dito diverso venga respinto. Se i comandi non sono supportati sul modulo, rivalutare il flusso prima di fissare il numero di slot.
 3. **Terminale locale.** Integrare badge, PIN, una scansione e LED sul Pi con SQLite. In parallelo verificare Python → Node con la prova della firma. Collegare poi MQTT e il deposito del lotto.
+
+**Evidenza hardware del 18 novembre 2026.** Con RC522 MINI e libreria MFRC522,
+l'utente ha verificato sui due supporti disponibili («badge» e «card») la
+lettura e l'autenticazione MIFARE Classic del settore 1: successo con chiave A
+di fabbrica, timeout con chiave diversa, nuovo successo con chiave di fabbrica.
+È confermata la compatibilità funzionale della challenge-response Crypto1
+gestita dal lettore e dalla libreria, non una challenge applicativa propria.
+La chiave di fabbrica è pubblica e Crypto1 è compromesso: questa prova non
+conferma un fattore di possesso robusto, né identifica con certezza i chip
+effettivi. Non è una decisione di adottare Crypto1 come protezione definitiva.
+Dettagli e limiti in [tests/test_rc522_auth/README.md](tests/test_rc522_auth/README.md);
+riferimenti: [NXP MF1S50YYX_V1, rev. 3.2](https://www.nxp.com/docs/en/data-sheet/MF1S50YYX_V1.pdf)
+e [MFRC522, Security](https://github.com/miguelbalboa/rfid#security).
+
+#### Stato della challenge e delle chiavi del badge
+
+| Punto prima aperto | Evidenza o limite acquisito | Stato e lavoro residuo |
+| --- | --- | --- |
+| Lettura e famiglia del badge | I due supporti sono letti e risultano compatibili con MIFARE Classic 1K; `VersionReg` del lettore è `0x82`. | Funzionamento osservato; modello e provenienza dei chip non identificati con certezza. Nessun UID reale nella documentazione. |
+| Challenge-response disponibile | `PCD_Authenticate` esegue l'autenticazione mutua Crypto1: successo con chiave A di fabbrica, timeout con chiave diversa, nuovo successo con chiave di fabbrica. | Verificata funzionalmente sul settore 1 di entrambi i supporti. Il timeout isolato non prova la causa del fallimento. |
+| Robustezza crittografica | Crypto1 è un cifrario simmetrico a flusso con chiave di 48 bit. Attacchi pubblicati ne compromettono la sicurezza; non è sufficiente cambiare la chiave per risolverli. | Non dichiarare resistenza a clonazione, emulazione, replay o relay: tali prove non sono state eseguite. Il protocollo non è adottato come protezione definitiva. |
+| Sostituzione della challenge | Il protocollo del badge attuale usa Crypto1; una nuova challenge applicativa o la sola modifica del nonce nello sketch non lo trasforma in autenticazione AES. `PCD_Authenticate` non offre la scelta di un nuovo algoritmo. | Non progettare una variante crittografica propria. Per autenticazione moderna servono badge, lettore e libreria compatibili, da selezionare e provare: nessun acquisto o stack approvato. |
+| Cambio della chiave di fabbrica | Le chiavi A/B sono configurabili per settore nel sector trailer, se l'autenticazione e i permessi correnti lo consentono. I test attuali non modificano chiavi né dati. | Capacità documentata, **non ancora provata sui supporti reali**. È una possibile miglioria della configurazione, non una correzione di Crypto1. |
+| Personalizzazione e gestione delle chiavi | Chiavi casuali distinte per badge/settore sono una proposta; servono memorizzazione locale esclusa da Git, distribuzione al verificatore, rotazione e recupero. | Da concordare. Definire Key A/Key B e permessi senza assumere che Key B sia sempre segreta o utilizzabile per autenticazione. |
+| Scrittura del sector trailer | Contiene chiavi e bit di accesso; un formato di accesso errato può bloccare irreversibilmente il settore. Key A non è recuperabile tramite una normale lettura del trailer. | Prima di una futura modifica: verificare permessi e codifica ridondante, conservare le chiavi note, prevedere errori/interruzioni e verificare nuova chiave accettata e vecchia rifiutata. Recupero non sempre possibile. Nessuna scrittura eseguita con questo aggiornamento documentale. |
+| Integrazione nel progetto | Le prove sono sketch isolati; non legano ancora l'esito del badge alla sessione breve di PIN e impronta sul Pi. | Da implementare dopo la decisione sul ruolo del badge. Distinguere esito Crypto1, identificazione UID e autorizzazione locale per ruolo/turno/revoca. |
+
+**Fonti primarie.** [NXP MF1S50YYX_V1, rev. 3.2, 23 maggio 2018](https://www.nxp.com/docs/en/data-sheet/MF1S50YYX_V1.pdf),
+sezioni 8.2, 8.6.3, 8.7.1 e 8.7.2, per autenticazione, sector trailer e
+permessi; [Radboud University, ricerche MIFARE Classic del 2008](https://www.sos.cs.ru.nl/applications/rfid/main.html)
+per gli attacchi; [MFRC522, Security](https://github.com/miguelbalboa/rfid#security)
+per limiti di Crypto1 e funzionalità della libreria. Le debolezze documentate
+non sono attacchi riprodotti dal gruppo sui due supporti.
 
 ### D. Prove, avvio e organizzazione
 
@@ -203,5 +272,5 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 
 - **Partecipanti:** da compilare.
 - **Decisioni confermate:** firmware con Arduino IDE, servizio locale in Python, contratto Solidity con Hardhat e seriale USB interna in chiaro per la demo. SQLite sul Raspberry Pi al varco e MERN sul PC (MongoDB, Express, React e Node.js). Il Pi prende le decisioni di accesso usando i dati locali. Gli eventi viaggiano tramite Mosquitto con mTLS e QoS 1, con conferma applicativa dopo il salvataggio e deduplicazione per ID.
-- **Decisioni rinviate e prove necessarie:** da compilare.
+- **Decisioni rinviate e prove necessarie:** per il badge, decidere il ruolo di Crypto1 nella demo con limiti espliciti, l'eventuale personalizzazione delle chiavi e l'eventuale necessità di hardware/protocollo con autenticazione moderna. Cambio chiavi, gestione dei permessi e integrazione con la sessione del Pi non ancora eseguiti. Altri punti da compilare.
 - **Attività assegnate e prossima verifica:** da compilare.

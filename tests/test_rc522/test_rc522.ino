@@ -10,9 +10,13 @@
 #include <MFRC522.h>
 
 MFRC522 lettore(10, 0xFF);
+bool readerReady = false;
+byte readerVersion = 0;
+unsigned long lastCheck = 0;
 
 void setup() {
   Serial.begin(9600);
+  Serial.println(F("TEST 2 - lettura badge RC522. Nessuna scrittura sul badge."));
   SPI.begin();
   lettore.PCD_Init();
 
@@ -22,16 +26,35 @@ void setup() {
 
   if (versione == 0x00 || versione == 0xFF) {
     Serial.println(F("Il lettore non risponde. Controlla fili e resistenze."));
-    while (true) {
-      delay(100);
-    }
+    Serial.println(F("Scollega USB prima di correggere i collegamenti; poi ripeti il test."));
+    return;
   }
 
+  readerVersion = versione;
+  readerReady = true;
+  lastCheck = millis();
   Serial.println(F("Avvicina la tessera bianca o il tag blu."));
+  Serial.println(F("Per rileggere lo stesso badge, allontanalo e riavvicinalo."));
+  Serial.println(F("Usa badge di prova: l'UID verra' mostrato sul monitor locale."));
 }
 
 void loop() {
-  if (!lettore.PICC_IsNewCardPresent() || !lettore.PICC_ReadCardSerial()) {
+  if (!readerReady) return;
+  const unsigned long now = millis();
+  if (now - lastCheck >= 5000) {
+    lastCheck = now;
+    if (lettore.PCD_ReadRegister(MFRC522::VersionReg) != readerVersion) {
+      readerReady = false;
+      Serial.println(F("ERRORE SPI: versione cambiata o lettore non raggiungibile. Test fermato."));
+      Serial.println(F("Scollega USB e controlla il cablaggio; poi riavvia."));
+      return;
+    }
+    Serial.println(F("Lettore raggiungibile. In attesa del badge..."));
+  }
+  if (!lettore.PICC_IsNewCardPresent()) return;
+  if (!lettore.PICC_ReadCardSerial()) {
+    Serial.println(F("Badge rilevato ma selezione fallita: allontana e riprova."));
+    delay(200);
     return;
   }
 
@@ -45,9 +68,10 @@ void loop() {
   }
   Serial.println();
 
-  Serial.print(F("Tipo: "));
+  Serial.print(F("Tipo indicato dalla libreria: "));
   Serial.println(lettore.PICC_GetTypeName(
       lettore.PICC_GetType(lettore.uid.sak)));
+  Serial.println(F("LETTURA OK. Questo non dimostra autenticazione crittografica."));
 
   lettore.PICC_HaltA();
 }

@@ -13,6 +13,7 @@ Il repository è attualmente nella fase di definizione. Ricavare stack, struttur
 ## Confini architetturali
 
 - Arduino Uno gestisce lettore NFC, tastierino, sensore d'impronta, mini display, rotella e tasto OK.
+- Per l'integrazione concordata il 18 novembre 2026, BACK ed ENCODER_PUSH del display restano scollegati: rotella per navigare, CONFIRM per confermare, `*` del tastierino per indietro/annullamento. Mappa proposta e limiti elettrici in `docs/hardware/terminal_integration.md`; non riusare i pin degli sketch isolati senza adattare il firmware. D0/D1 sono riservati alla seriale USB verso il Pi.
 - Raspberry Pi Zero W (Pi 1) esegue il servizio locale in Python, verifica le credenziali, applica le policy locali, comanda il LED tramite GPIO e firma gli eventi.
 - Il PC ospita Mosquitto e lo stack MERN. Il backend verifica e conserva gli eventi e pubblica gli hash dei lotti.
 - Il contratto Solidity, sviluppato con Hardhat, registra gli hash dei lotti tramite un account autorizzato. La decisione di accesso rimane locale al Pi 1.
@@ -20,9 +21,9 @@ Il repository è attualmente nella fase di definizione. Ricavare stack, struttur
 
 ## Hardware e verifiche aperte
 
-Il lettore acquistato è un RC522 MINI da 13,56 MHz, alimentato a 3,3 V e con interfaccia SPI. Il modello del badge e l'hardware del collega devono essere identificati.
+Il lettore acquistato è un RC522 MINI da 13,56 MHz, alimentato a 3,3 V e con interfaccia SPI. Il 18 novembre 2026 sono state verificate lettura e autenticazione di settore Crypto1 sui due supporti disponibili, compatibili con MIFARE Classic 1K. Modelli esatti dei chip e hardware del collega restano da identificare. Evidenze in `tests/test_rc522_auth/README.md` e stato dei punti aperti in `architecture_guidelines.md`.
 
-Verificare sui modelli effettivi e sulle relative librerie la possibilità di autenticazione challenge-response. La lettura dell'UID e il completamento dell'autenticazione crittografica sono verifiche distinte. Documentare il risultato prima di dichiarare il supporto della challenge o la robustezza del fattore di possesso.
+La challenge-response Crypto1 è verificata funzionalmente, ma la chiave di fabbrica è pubblica e Crypto1 è compromesso: non dichiarare un fattore di possesso robusto. Il protocollo non diventa moderno cambiando soltanto la challenge nello sketch. La personalizzazione delle chiavi A/B è documentata ma non ancora provata sui supporti; un eventuale cambio richiede una procedura che verifichi permessi, bit di accesso e gestione degli errori, inclusi i possibili blocchi irreversibili. La scelta di usarla nella demo e l'eventuale hardware per autenticazione moderna restano aperti. Distinguere sempre lettura UID, autenticazione completata e garanzie contro clonazione/replay/relay; non dichiarare prove non eseguite.
 
 Verificare il supporto del sensore al confronto biometrico 1:1 e alla memorizzazione interna dei template. Confermare interfacce, livelli elettrici e pinout su documentazione del produttore prima di proporre cablaggi. Misurare memoria e tempi delle librerie crittografiche sull'Uno.
 
