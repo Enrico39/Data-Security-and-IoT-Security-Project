@@ -27,6 +27,12 @@ Il LED è rosso quando il varco simulato è bloccato. Se il Pi autorizza l'acces
 
 ### Comandi e assegnazione dei pin per l'integrazione
 
+**Riferimento attuale del banco, 19 novembre 2026:**
+[docs/hardware/current_wiring.md](docs/hardware/current_wiring.md) salva
+tastierino, 74HC595, LED e RFID con la mappa personalizzata. Impronta e
+schermo sono indicati dall'utente come ancora da collegare; la lettura RFID
+dopo la correzione software è confermata dall'utente.
+
 **Decisione concordata il 18 novembre 2026:** lasciare scollegati `BACK` ed
 `ENCODER_PUSH` del modulo display. La rotazione della rotella scorre le voci,
 `CONFIRM` seleziona/conferma e `*` del tastierino torna indietro nei menu o
@@ -44,6 +50,30 @@ riservato D0/D1 alla UART collegata al convertitore USB–seriale dell'Uno.
 Arduino e Pi si collegano con il cavo USB, senza fili UART aggiuntivi. A0–A3
 sono usati come digitali e A4/A5 per il display; i connettori SDA/SCL duplicano
 A4/A5 e non aggiungono pin. I LED del varco rimangono sul Pi.
+
+**Configurazione tastierino salvata il 19 novembre 2026:** l'utente conferma
+il funzionamento con 74HC595 dopo aver sostituito un cavetto guasto.
+Le righe sono su QB–QE (pin fisici 1–4), ciascuna attraverso 1 kΩ; le colonne
+restano A1–A3. D11 porta i dati, D13 il clock e A0 il latch; il 595 è alimentato
+a 5 V. La prova è stata eseguita senza condensatore da 100 nF, non disponibile.
+Nel piano di integrazione MOSI/SCK saranno condivisi con RFID e si recuperano
+D7, D8 e D9. Questa convivenza e il firmware completo restano da verificare;
+la prova del tastierino non valida tutto il terminale. Cablaggio ed evidenze in
+[tests/test_keypad_74hc595/README.md](tests/test_keypad_74hc595/README.md).
+
+Per la prova combinata è disponibile
+[tests/test_terminal_spi](tests/test_terminal_spi/README.md): tastierino,
+74HC595, LED da banco, RC522 su SPI condiviso e OLED su A4/A5 con bus software
+senza pull-up a 5 V. Preparata e controllata in simulazione, non ancora
+validata sul montaggio completo; encoder, pulsanti display e impronta non
+sono gestiti. Non implementa autenticazione o decisioni di accesso.
+
+La successiva [variante richiesta con pin RFID personalizzati](tests/test_terminal_soft_spi/README.md)
+usa SPI software: SDA/SS D12, SCK D10, MOSI D9, MISO D8. Il 595 conserva
+D11/D13; il protocollo carte è gestito da MFRC522v2, mentre il trasporto GPIO
+è specifico della prova. La lettura del badge è confermata dall'utente;
+la validazione completa resta aperta. Non sostituisce
+automaticamente la mappa integrata condivisa concordata in precedenza.
 
 Mappa, alimentazione e schemi in
 [docs/hardware/terminal_integration.md](docs/hardware/terminal_integration.md).

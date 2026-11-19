@@ -1,9 +1,20 @@
 # Collegamento integrato delle periferiche su Uno R3
 
+**Per riprendere il banco attuale usare [current_wiring.md](current_wiring.md):**
+74HC595, tastierino, LED e RFID sui pin personalizzati; impronta e schermo
+ancora da collegare. Le mappe storiche sotto non sostituiscono questa fotografia
+dei collegamenti comunicati dall'utente.
+
 **Stato, 18 novembre 2026:** comandi di navigazione concordati; schema dei
 segnali proposto e controllato a tavolino. Il funzionamento delle periferiche
 separate non prova ancora il funzionamento contemporaneo. Questa consegna
 contiene documentazione e immagini, non un firmware integrato eseguibile.
+
+**Aggiornamento, 19 novembre 2026:** salvata la configurazione del tastierino
+con 74HC595, funzionante secondo la prova riferita dall'utente. La mappa e le
+immagini del 18 novembre sotto descrivono il piano precedente senza 595;
+per la variante usare la sezione dedicata. Il terminale completo non è ancora
+stato verificato con questa variante.
 
 ![Schema generale](terminal_connections.png)
 
@@ -23,7 +34,7 @@ tardivi. La prova di annullamento non è ancora stata eseguita. `#` non riceve
 una nuova funzione in questa decisione; il tastierino conserva tutti i suoi
 sette collegamenti e dodici tasti.
 
-## Mappa unica dei GPIO
+## Mappa dei GPIO del piano del 18 novembre, senza 74HC595
 
 | Pin Uno | Segnale | Note |
 | --- | --- | --- |
@@ -186,7 +197,55 @@ tastierino conserva l'orientamento della calibrazione; i contatti 1–7 vengono
 spostati nell'ordine su D7, D8, D9, A0, A1, A2, A3. Non invertire il
 connettore assumendo un ordine standard diverso da quello già misurato.
 
+## Configurazione con 74HC595 — salvata il 19 novembre 2026
+
+La prova del tastierino in [tests/test_keypad_74hc595](../../tests/test_keypad_74hc595/README.md)
+ha avuto esito positivo riferito dall'utente dopo la sostituzione di un
+cavetto guasto della prima colonna. Sposta le quattro righe su QB–QE
+(pin fisici 1–4) di un 74HC595 a 5 V, ciascuna attraverso 1 kΩ.
+D11 e D13 sono condivisi con il bus SPI RFID dal lato Uno, prima dei partitori;
+A0 diventa il latch. Le colonne restano A1–A3: si recuperano D7, D8 e D9.
+La condivisione con RFID è ancora un piano da validare, non una prova riuscita.
+Il condensatore di disaccoppiamento da 100 nF è raccomandato ma non era
+disponibile e non è stato montato nella prova. Le quattro resistenze sulle
+righe sono aggiuntive rispetto ai partitori RFID.
+
+| Segnale della variante | Collegamento salvato |
+| --- | --- |
+| Righe `1 2 3`, `4 5 6`, `7 8 9`, `* 0 #` | Pin fisici 1, 2, 3, 4 del 595, rispettivamente; una resistenza da 1 kΩ in serie a ciascuna riga |
+| Colonne `1 4 7 *`, `2 5 8 0`, `3 6 9 #` | Uno A1, A2, A3, rispettivamente |
+| Dati, clock, latch | Uno D11 → pin 14; D13 → pin 11; A0 → pin 12 del 595 |
+| Alimentazione e controlli fissi | 595 pin 16 e 10 → 5V; pin 8 e 13 → GND |
+| GPIO recuperati rispetto al piano precedente | D7, D8, D9; nessuna nuova funzione assegnata |
+
+La gestione di pressioni simultanee richiede
+validazione; la prova non garantisce il rifiuto di tutte le combinazioni.
+
+La configurazione salvata non reintroduce BACK/ENCODER_PUSH. Il 595 offre solo uscite;
+i pulsanti richiedono ingressi Uno. Servono firmware integrato, gestione
+condivisa dello SPI e un nuovo piano della breadboard. I LED restano sul Pi.
+
 ## Firmware e prove mancanti
+
+Su richiesta dell'utente è disponibile anche la
+[variante RFID con SPI software](../../tests/test_terminal_soft_spi/README.md):
+SDA/SS D12, SCK D10, MOSI D9, MISO D8. Usa MFRC522v2 con trasporto GPIO;
+il 595 mantiene D11/D13 e OLED A4/A5. Variante da banco da validare, distinta
+dalla mappa SPI condivisa; occupa D8/D9 e non preserva i tre GPIO recuperati
+del piano condiviso. Nessun cambiamento al flusso di autenticazione finale.
+
+La [prova combinata con RFID e OLED](../../tests/test_terminal_spi/README.md)
+aggiunge RC522 su SPI condiviso con il 595 e OLED su A4/A5 tramite lo stesso
+bus software delle prove display. Include tastierino e LED da banco; encoder,
+pulsanti display e impronta restano scollegati. È preparata, non ancora
+validata sull'hardware completo; alimentazione simultanea e latenze restano
+da misurare. Non costituisce il firmware di autenticazione del terminale.
+
+È disponibile una [prova da banco con tastierino e LED bicolore](../../tests/test_keypad_74hc595_two_color/README.md)
+su QF/QG del 595 (pin 5/6), con due resistenze aggiuntive da 1 kΩ. Non occupa
+altri GPIO Uno e non sostituisce il LED del varco comandato dal Pi. La prova
+con il modulo fotografato deve ancora essere eseguita; i colori dei due
+canali non sono ancora identificati.
 
 **Non caricare gli sketch isolati con questa mappa completa collegata.**
 Usano pin diversi e possono pilotare a 5 V segnali del display ora assegnati
