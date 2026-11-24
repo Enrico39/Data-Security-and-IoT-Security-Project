@@ -1,0 +1,38 @@
+# Servizi di sviluppo del backend: broker MQTT e database.
+# Le porte sono pubblicate solo su 127.0.0.1: i servizi non sono raggiungibili
+# da altri computer della rete. Le credenziali arrivano dal file .env (escluso
+# da Git); senza le variabili richieste Compose rifiuta di avviare i servizi.
+name: ac-backend
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.1.2-alpine
+    container_name: ac-mosquitto
+    restart: "no"
+    ports:
+      - "127.0.0.1:1884:1883"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./infra/mosquitto/acl:/mosquitto/config/acl:ro
+      - ./infra/mosquitto/passwd:/mosquitto/config/passwd:ro
+      - mosquitto-data:/mosquitto/data
+
+  mongo:
+    image: mongo:8.0.38
+    container_name: ac-mongo
+    restart: "no"
+    ports:
+      - "127.0.0.1:27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:?manca MONGO_ROOT_USER nel file .env}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?manca MONGO_ROOT_PASSWORD nel file .env}
+      MONGO_APP_DB: ${MONGO_APP_DB:?manca MONGO_APP_DB nel file .env}
+      MONGO_APP_USER: ${MONGO_APP_USER:?manca MONGO_APP_USER nel file .env}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?manca MONGO_APP_PASSWORD nel file .env}
+    volumes:
+      - mongo-data:/data/db
+      - ./infra/mongo/init-app-user.js:/docker-entrypoint-initdb.d/init-app-user.js:ro
+
+volumes:
+  mosquitto-data:
+  mongo-data:

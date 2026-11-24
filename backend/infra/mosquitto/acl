@@ -1,0 +1,13 @@
+# Permessi per topic (docs/event-schema.md, §5).
+
+# Il backend riceve gli eventi di tutti i gateway e pubblica conferme e policy.
+user backend
+topic read ac/v1/+/events
+topic write ac/v1/+/ack
+topic write ac/v1/+/policy
+
+# Ogni gateway si autentica con il proprio gateway_id come nome utente (%u):
+# pubblica solo i propri eventi e legge solo le proprie conferme e la propria policy.
+pattern write ac/v1/%u/events
+pattern read ac/v1/%u/ack
+pattern read ac/v1/%u/policy

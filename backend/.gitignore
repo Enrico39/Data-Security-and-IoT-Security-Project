@@ -1,0 +1,3 @@
+# Segreti locali: mai versionare.
+.env
+infra/mosquitto/passwd
