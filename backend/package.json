@@ -1,0 +1,20 @@
+{
+  "name": "access-control-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend del varco: riceve via MQTT gli eventi firmati dai gateway, li verifica, li archivia in MongoDB e li conferma.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/index.js",
+    "test": "node --test test/*.test.js",
+    "replay": "node --env-file=.env scripts/replay-vectors.js"
+  },
+  "dependencies": {
+    "canonicalize": "5.1.0",
+    "mongodb": "7.9.1",
+    "mqtt": "5.16.1"
+  }
+}

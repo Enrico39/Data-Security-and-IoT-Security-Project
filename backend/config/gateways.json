@@ -1,0 +1,11 @@
+{
+  "description": "Chiavi pubbliche dei gateway autorizzati. Percorsi relativi a questo file. Solo chiavi pubbliche.",
+  "gateways": [
+    {
+      "gateway_id": "gw-test-01",
+      "keys": [
+        { "kid": "gw-test-01-k1", "public_key_file": "../../docs/test-vectors/public_key.pem" }
+      ]
+    }
+  ]
+}
