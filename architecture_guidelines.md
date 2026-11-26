@@ -21,7 +21,7 @@ Il LED è rosso quando il varco simulato è bloccato. Se il Pi autorizza l'acces
 
 | Passo | Cosa fa o vede l'utente | Cosa succede nel prototipo |
 | --- | --- | --- |
-| 1. Avvicina il badge | Il display mostra «Avvicina il badge». Il LED è rosso. | Il lettore NFC passa l'UID all'Arduino, che lo inoltra al Pi. Il Pi cerca il badge, controlla che sia attivo e avvia una sessione breve associata all'operatore. |
+| 1. Avvicina il badge | Il display mostra «Avvicina il badge». Il LED è rosso. | L’Uno seleziona la carta e richiede l’autenticazione Crypto1 del settore 1. Invia BADGE_OK con l’UID al Pi solo in caso di successo. Il Pi cerca il badge, controlla che sia attivo e avvia una sessione breve associata all'operatore. |
 | 2. Inserisce il PIN | Digita sul tastierino, vede un asterisco per ogni cifra e preme `#`. Il tasto `*` cancella una cifra o annulla a campo vuoto. | L'Arduino invia al Pi il PIN insieme all'ID della sessione sul collegamento seriale locale. Il Pi verifica il PIN e applica il limite ai tentativi. |
 | 3. Riceve l'esito | Il display mostra «Accesso consentito» e il LED diventa verde, oppure mostra «Accesso negato» e il LED resta rosso. | Il Pi applica la policy locale, controllando ruolo, turno e revoca. Chiude la sessione dopo la decisione e registra l'esito. |
 | 4. Il terminale torna pronto | Dopo cinque secondi il LED torna rosso e il display torna a «Avvicina il badge». | Il Pi termina la finestra di accesso simulata e il terminale si prepara al tentativo successivo. |
@@ -82,9 +82,7 @@ Il 18 novembre 2026 è stata verificata sui due supporti disponibili la
 **challenge-response MIFARE Classic con Crypto1**, tramite RC522 MINI e
 libreria MFRC522. La prova supera la sola lettura UID, ma Crypto1 è compromesso
 e la chiave di fabbrica usata è pubblica: non è dimostrato un fattore di
-possesso robusto. L'inserimento di questo controllo nel flusso prima del PIN
-resta da decidere e implementare; il flusso della tabella descrive ancora la
-base con identificazione UID. Risultati, limiti e punti aperti sono riportati
+possesso robusto. Il firmware della demo richiede questo controllo prima del PIN. Il collaudo sul banco integrato resta aperto. Risultati, limiti e punti aperti sono riportati
 nella sezione [Stato della challenge e delle chiavi del badge](#stato-della-challenge-e-delle-chiavi-del-badge).
 
 ## Responsabilità hardware
@@ -169,7 +167,7 @@ Le linee guida precedenti costituiscono la base attuale: MQTT con mTLS, firme EC
 | **Essenziale** | Inventario hardware, lettura del badge e confronto 1:1, stack minimo sul Pi e sul backend, firma degli eventi, mTLS MQTT, protezione del PIN, piattaforma del contratto e rete per eseguirlo. |
 | **Da definire durante l'implementazione** | Formato dei messaggi, versioni delle librerie, QoS, frequenza dei lotti, parametri Argon2id e gestione dei certificati. |
 | **Dipende dal perimetro fisico** | Cifratura autenticata della seriale Arduino-Pi. La decisione dipende da chi può leggere o modificare il traffico sul cavo. |
-| **Verificato con limiti; decisione aperta** | Challenge-response Crypto1 riuscita sui due supporti disponibili. Restano aperti ruolo nella demo, gestione delle chiavi e necessità di hardware/protocollo con autenticazione moderna. Il risultato non dimostra resistenza alla clonazione. |
+| **Adottato nella demo con limiti** | Challenge-response Crypto1 riuscita sui due supporti disponibili. Restano aperte gestione delle chiavi e necessità di hardware/protocollo con autenticazione moderna. Il risultato non dimostra resistenza alla clonazione. |
 
 ### Opzioni facoltative
 
@@ -206,7 +204,7 @@ Compilare una scelta per ogni uso. La curva della firma dei log, quella usata da
 | Firma degli eventi | Come rendiamo interoperabili Pi e backend? | ECDSA P-256 sul Pi, verifica in Node. Prova iniziale con firma DER e stessi byte del payload su entrambi. | P-256 è la base. Libreria, encoding e formato firmato da validare. |
 | Seriale Arduino-Pi | Il cavo e i connettori sono nel perimetro fidato? | USB interna all'alloggiamento protetto. Validare messaggi, fase e ID di sessione. | **Demo: seriale in chiaro con PIN fittizi.** |
 | MQTT con mTLS | Versione TLS, certificati, algoritmo delle chiavi, CA e rinnovo/revoca. | TLS 1.3 previsto. Distinguere autenticazione con certificato, accordo di chiavi e cifratura della sessione. Confermare compatibilità broker/client. | Da compilare |
-| PIN | Libreria, parametri di derivazione e politica dei tentativi. | Argon2id con salt sul Pi. Misurare memoria e latenza sull'hardware disponibile; definire contatori, blocco e persistenza al riavvio. | Da compilare |
+| PIN | Libreria, parametri di derivazione e politica dei tentativi. | Argon2id con salt sul Pi. Misurare memoria e latenza sull'hardware disponibile; proposta per il Pi: [tre errori consecutivi e blocco di 60 secondi per operatore](firmware/terminal_2fa/README.md#politica-proposta-per-il-servizio-pi), con persistenza al riavvio. | Da compilare |
 | Hash degli eventi e dei lotti | Funzione di hash, encoding, ordine e concatenazione. | Da specificare. SHA-256 è un candidato per i dati applicativi; se si usa EVM distinguere Keccak-256 da SHA3-256 nelle operazioni della piattaforma. | Da compilare |
 | Firma della transazione blockchain | Chi firma il deposito? | L'account EVM del backend firma con secp256k1. Il backend verifica la firma P-256 del gateway prima di formare il lotto. | Configurare l'account di sviluppo. |
 | Ciclo di vita delle chiavi | Come vengono generate, installate, protette, sostituite e revocate? | Distinguere chiave seriale, firma gateway, TLS/CA e publisher blockchain. Decidere se protezione software è sufficiente alla demo e dichiararne i limiti. | Da compilare |
@@ -222,7 +220,7 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 | Argomento                   | Domande per il gruppo                                            | Vincoli o alternative da valutare                                                                                                                                        | Decisione del gruppo                                                                                                                                                                                                                                                                                       |
 | --------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Inventario hardware | Quali modelli e quantità abbiamo? | Elegoo Uno R3, due Raspberry Pi Zero W, lettore SPI MFRC522, sensore ottico AS608, tastierino 3×4, display OLED I²C con rotella e tasto OK, LED RGB. | Inventario rilevato. Mappare pin e verificare livelli elettrici prima del cablaggio completo. |
-| Badge | Quale autenticazione dimostriamo e quali garanzie dichiariamo? | UID e autenticazione di settore Crypto1 provati con gli sketch in `tests/test_rc522*`. Chiave di fabbrica pubblica; Crypto1 compromesso. | **Verificato il 18 novembre 2026** su entrambi i supporti: classificazione MIFARE 1KB e autenticazione del settore 1. Modelli esatti, cambio chiavi e impiego nel flusso completo restano da verificare/decidere. |
+| Badge | Quale autenticazione dimostriamo e quali garanzie dichiariamo? | UID e autenticazione di settore Crypto1 provati con gli sketch in `tests/test_rc522*`. Chiave di fabbrica pubblica; Crypto1 compromesso. | **Verificato il 18 novembre 2026** su entrambi i supporti: classificazione MIFARE 1KB e autenticazione del settore 1. Modelli esatti, cambio chiavi e collaudo del flusso completo restano aperti. |
 | Biometria (proposta archiviata) | Quanti template associare a ogni operatore? | Partire da un template per operatore, acquisito seguendo la procedura del modulo. Provare 2 e poi fino a 5 solo se riducono i rifiuti legittimi in misura utile. Verificare sul modello reale capacità, confronto mirato agli slot dell’operatore, latenza e cancellazione. | Numero di slot da confermare con prove hardware. |
 | Firmware | Come sviluppiamo per l'Uno? | C/C++ e librerie compatibili con l'hardware. | **Arduino IDE confermato.** |
 | Servizio locale sul Pi | Quale linguaggio gestisce seriale, sessioni, policy e LED? | Python per seriale, GPIO, SQLite, verifica PIN, firma e MQTT. | **Python confermato.** Provare installazione delle librerie e prestazioni sul Pi Zero W. |
@@ -263,7 +261,7 @@ e [MFRC522, Security](https://github.com/miguelbalboa/rfid#security).
 | Cambio della chiave di fabbrica | Le chiavi A/B sono configurabili per settore nel sector trailer, se l'autenticazione e i permessi correnti lo consentono. I test attuali non modificano chiavi né dati. | Capacità documentata, **non ancora provata sui supporti reali**. È una possibile miglioria della configurazione, non una correzione di Crypto1. |
 | Personalizzazione e gestione delle chiavi | Chiavi casuali distinte per badge/settore sono una proposta; servono memorizzazione locale esclusa da Git, distribuzione al verificatore, rotazione e recupero. | Da concordare. Definire Key A/Key B e permessi senza assumere che Key B sia sempre segreta o utilizzabile per autenticazione. |
 | Scrittura del sector trailer | Contiene chiavi e bit di accesso; un formato di accesso errato può bloccare irreversibilmente il settore. Key A non è recuperabile tramite una normale lettura del trailer. | Prima di una futura modifica: verificare permessi e codifica ridondante, conservare le chiavi note, prevedere errori/interruzioni e verificare nuova chiave accettata e vecchia rifiutata. Recupero non sempre possibile. Nessuna scrittura eseguita con questo aggiornamento documentale. |
-| Integrazione nel progetto | Le prove sono sketch isolati; non legano ancora l'esito del badge alla sessione breve del PIN sul Pi. | Da implementare dopo la decisione sul ruolo del badge. Distinguere esito Crypto1, identificazione UID e autorizzazione locale per ruolo/turno/revoca. |
+| Integrazione nel progetto | Il terminale invia BADGE_OK con ID sessione e UID solo dopo autenticazione di settore. | Da collaudare sul banco con il servizio Pi. Distinguere esito Crypto1, identificazione UID e autorizzazione locale per ruolo/turno/revoca. |
 
 **Fonti primarie.** [NXP MF1S50YYX_V1, rev. 3.2, 23 maggio 2018](https://www.nxp.com/docs/en/data-sheet/MF1S50YYX_V1.pdf),
 sezioni 8.2, 8.6.3, 8.7.1 e 8.7.2, per autenticazione, sector trailer e
@@ -296,5 +294,5 @@ non sono attacchi riprodotti dal gruppo sui due supporti.
 
 - **Partecipanti:** da compilare.
 - **Decisioni confermate:** firmware con Arduino IDE, servizio locale in Python, contratto Solidity con Hardhat e seriale USB interna in chiaro per la demo. SQLite sul Raspberry Pi al varco e MERN sul PC (MongoDB, Express, React e Node.js). Il Pi prende le decisioni di accesso usando i dati locali. Gli eventi viaggiano tramite Mosquitto con mTLS e QoS 1, con conferma applicativa dopo il salvataggio e deduplicazione per ID.
-- **Decisioni rinviate e prove necessarie:** per il badge, decidere il ruolo di Crypto1 nella demo con limiti espliciti, l'eventuale personalizzazione delle chiavi e l'eventuale necessità di hardware/protocollo con autenticazione moderna. Cambio chiavi, gestione dei permessi e integrazione con la sessione del Pi non ancora eseguiti. Altri punti da compilare.
+- **Decisioni rinviate e prove necessarie:** per il badge, valutare l'eventuale personalizzazione delle chiavi e l'eventuale necessità di hardware/protocollo con autenticazione moderna. Cambio chiavi, gestione dei permessi e integrazione con la sessione del Pi non ancora eseguiti. Altri punti da compilare.
 - **Attività assegnate e prossima verifica:** da compilare.

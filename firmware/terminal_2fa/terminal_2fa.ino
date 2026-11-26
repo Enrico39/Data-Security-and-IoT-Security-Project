@@ -109,12 +109,23 @@ void pollSerial() {
 
 void pollBadge() {
   if (!reader.PICC_IsNewCardPresent() || reader.PICC_Select(&reader.uid) != MFRC522::STATUS_OK) return;
+  const byte size = reader.uid.size;
+  MFRC522::MIFARE_Key demoKey;
+  memset(demoKey.keyByte, 0xFF, sizeof(demoKey.keyByte));  // Chiave A pubblica del banco.
+  const bool authenticated = (size == 4 || size == 7 || size == 10)
+      && reader.PICC_GetType(reader.uid.sak) == MFRC522::PICC_TYPE_MIFARE_1K
+      && reader.PCD_Authenticate(MFRC522::PICC_CMD_MF_AUTH_KEY_A, 4, &demoKey,
+                                 &reader.uid) == MFRC522::STATUS_OK;
   reader.PICC_HaltA();
-  byte size = reader.uid.size;
-  if (size != 4 && size != 7 && size != 10) return;
+  reader.PCD_StopCrypto1();
+  if (!authenticated) {
+    emitMessage(F("BADGE_FAIL"));
+    finish("BADGE NON ACCETTATO");
+    return;
+  }
   started = millis();
   phase = WaitingPin;
-  Serial.print(F("BADGE "));
+  Serial.print(F("BADGE_OK "));
   Serial.print(session);
   Serial.print(' ');
   for (byte i = 0; i < size; ++i) {
