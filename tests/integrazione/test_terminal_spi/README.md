@@ -7,7 +7,7 @@ autenticazione, policy, impronta o sessione; nessun accesso autorizzato.
 ## Collegamenti
 
 USB scollegata durante il montaggio. Mantenere tastierino e LED secondo
-[la prova precedente](../test_keypad_74hc595_two_color/README.md).
+[la prova precedente](../../tastierino/test_keypad_74hc595_two_color/README.md).
 
 | Pin RC522 MINI | Uno / collegamento |
 | --- | --- |
@@ -23,7 +23,7 @@ USB scollegata durante il montaggio. Mantenere tastierino e LED secondo
 Per ciascuno dei tre partitori: uscita Uno → **1 kΩ** → nodo ingresso RFID;
 dal medesimo nodo **2 kΩ** → GND. Sono tre coppie aggiuntive rispetto alle
 resistenze di tastierino e LED. Si riusa il principio del
-[cablaggio RFID già provato](../../docs/hardware/rc522_mini_breadboard.md),
+[cablaggio RFID già provato](../../../docs/hardware/rc522_mini_breadboard.md),
 non le coordinate fisiche di una breadboard diversa.
 
 **D11 e D13 restano anche collegati al 595, dal lato Uno prima dei partitori.**
@@ -104,5 +104,5 @@ consumi, radiofrequenza, margini elettrici, RAM AVR o latenze reali.
 
 - [NXP MFRC522, rev. 3.9](https://www.nxp.com/docs/en/data-sheet/MFRC522.pdf): SPI e limiti elettrici.
 - [MFRC522.cpp](https://github.com/miguelbalboa/rfid/blob/master/src/MFRC522.cpp): transazioni SPI e API usate.
-- [Test OLED del progetto](../test_display_menu/README.md): profilo, offset e limiti elettrici.
+- [Test OLED del progetto](../../display/test_display_menu/README.md): profilo, offset e limiti elettrici.
 - [Adafruit SH110X](https://github.com/adafruit/Adafruit_SH110x/blob/master/Adafruit_SH110X.cpp): riferimento per offset delle colonne.

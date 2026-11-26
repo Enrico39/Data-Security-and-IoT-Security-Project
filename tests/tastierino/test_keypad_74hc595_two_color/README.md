@@ -46,7 +46,7 @@ la mappa già salvata. Nessun collegamento del modulo direttamente a 5 V.
 ## Avvio e comportamento atteso
 
 Per aggiungere RFID e OLED è disponibile la
-[prova combinata test_terminal_spi](../test_terminal_spi/README.md), con un
+[prova combinata test_terminal_spi](../../integrazione/test_terminal_spi/README.md), con un
 solo sketch per tutti questi dispositivi. Non usare il test isolato RFID
 o il menu display con il montaggio combinato.
 

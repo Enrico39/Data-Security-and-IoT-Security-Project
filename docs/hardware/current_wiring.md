@@ -1,7 +1,7 @@
 # Banco a due fattori — 26 novembre 2026
 
 Elegoo Uno R3 con RC522 MINI, display HW-787AB e tastierino passivo 3×4.
-Lo [sketch di prova](../../tests/test_rc522_oled_pin/test_rc522_oled_pin.ino) usa badge → PIN.
+Lo [sketch di prova](../../tests/integrazione/test_rc522_oled_pin/test_rc522_oled_pin.ino) usa badge → PIN.
 AS608, 74HC595, rotella e pulsanti del display sono scollegati.
 
 | Elemento | Collegamenti sull’Uno |
@@ -12,7 +12,7 @@ AS608, 74HC595, rotella e pulsanti del display sono scollegati.
 | Tastierino, contatti 5–7 | Colonne da sinistra a destra → A1, A2, A3 rispettivamente. Sette fili diretti, pull-up interne, nessun filo di alimentazione. |
 
 Per la numerazione del tastierino mantenere l’orientamento della
-[calibrazione originale](../../tests/test_keypad/README.md).
+[calibrazione originale](../../tests/tastierino/test_keypad/README.md).
 D0/D1 sono riservati alla seriale USB. D2–D6 restano liberi.
 
 Nella prova RFID riferita il 26 novembre i segnali erano diretti, senza resistenze.
@@ -134,7 +134,7 @@ di compatibilità elettrica o temporale dell'insieme.
 
 ## Sketch da mantenere insieme al cablaggio
 
-Usare [test_terminal_soft_spi.ino](../../tests/test_terminal_soft_spi/test_terminal_soft_spi.ino),
+Usare [test_terminal_soft_spi.ino](../../tests/integrazione/test_terminal_soft_spi/test_terminal_soft_spi.ino),
 con `soft_rfid_driver.h` e `oled_ui.h` nella stessa cartella e libreria
 **MFRC522v2**. Monitor seriale **9600 baud**. Tasti fittizi 1/2/0: canale S,
 centrale e LED spento. L'UID è stampato solo per diagnostica con badge di prova.
@@ -145,6 +145,6 @@ Non implementa ancora impronta, encoder, CONFIRM, sessioni o autenticazione.
 Prima di collegare quelle periferiche servirà adattare il firmware; non
 caricare i relativi sketch isolati sul banco completo.
 
-Dettagli e limiti in [test_terminal_soft_spi](../../tests/test_terminal_soft_spi/README.md)
+Dettagli e limiti in [test_terminal_soft_spi](../../tests/integrazione/test_terminal_soft_spi/README.md)
 e nel [piano di integrazione](terminal_integration.md). I tre scenari di
 accesso finale non sono ancora verificati con questo montaggio.

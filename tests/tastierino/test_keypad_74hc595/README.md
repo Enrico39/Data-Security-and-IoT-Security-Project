@@ -10,7 +10,7 @@ RFID, display e impronta. Per ripeterla, scollegare le altre periferiche;
 la foto condivisa in conversazione mostra anche altro hardware montato,
 ma non prova che sia gestito contemporaneamente dallo sketch.
 La variante per il terminale completo è descritta in
-[terminal_integration.md](../../docs/hardware/terminal_integration.md).
+[terminal_integration.md](../../../docs/hardware/terminal_integration.md).
 
 Il 74HC595 conserva otto uscite digitali impostate tramite dati, clock e latch.
 Non legge ingressi: non sostituisce un GPIO bidirezionale, la UART o un bus I²C.
@@ -140,7 +140,7 @@ Non caricare questo sketch come firmware integrato.
 - [Texas Instruments, SNx4HC595, SCLS041J, revisione J, ottobre 2021](https://www.ti.com/lit/ds/symlink/sn74hc595.pdf),
   sezioni 5, 6, 8 e 10: piedinatura, livelli, registri, latch e disaccoppiamento.
   Se il chip è di un altro produttore, controllarne il datasheet effettivo.
-- [Mappa integrata del progetto](../../docs/hardware/terminal_integration.md):
+- [Mappa integrata del progetto](../../../docs/hardware/terminal_integration.md):
   assegnazione GPIO, partitori, perimetro e verifiche ancora aperte.
 
 Eseguito controllo C++11 con `clang++ -Wall -Wextra -Werror` e simulazione

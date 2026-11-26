@@ -1,6 +1,6 @@
 # Terminale da banco con RFID sui pin D12/D10/D9/D8
 
-La [mappa unica del montaggio attuale](../../docs/hardware/current_wiring.md)
+La [mappa unica del montaggio attuale](../../../docs/hardware/current_wiring.md)
 salva tutti i fili e i pin riservati: l'utente indica impronta e schermo
 come ancora da collegare. La gestione OLED inclusa nel codice non significa
 che lo schermo sia già montato o verificato.

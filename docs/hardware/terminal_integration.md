@@ -199,7 +199,7 @@ connettore assumendo un ordine standard diverso da quello già misurato.
 
 ## Configurazione con 74HC595 — salvata il 19 novembre 2026
 
-La prova del tastierino in [tests/test_keypad_74hc595](../../tests/test_keypad_74hc595/README.md)
+La prova del tastierino in [tests/tastierino/test_keypad_74hc595](../../tests/tastierino/test_keypad_74hc595/README.md)
 ha avuto esito positivo riferito dall'utente dopo la sostituzione di un
 cavetto guasto della prima colonna. Sposta le quattro righe su QB–QE
 (pin fisici 1–4) di un 74HC595 a 5 V, ciascuna attraverso 1 kΩ.
@@ -228,20 +228,20 @@ condivisa dello SPI e un nuovo piano della breadboard. I LED restano sul Pi.
 ## Firmware e prove mancanti
 
 Su richiesta dell'utente è disponibile anche la
-[variante RFID con SPI software](../../tests/test_terminal_soft_spi/README.md):
+[variante RFID con SPI software](../../tests/integrazione/test_terminal_soft_spi/README.md):
 SDA/SS D12, SCK D10, MOSI D9, MISO D8. Usa MFRC522v2 con trasporto GPIO;
 il 595 mantiene D11/D13 e OLED A4/A5. Variante da banco da validare, distinta
 dalla mappa SPI condivisa; occupa D8/D9 e non preserva i tre GPIO recuperati
 del piano condiviso. Nessun cambiamento al flusso di autenticazione finale.
 
-La [prova combinata con RFID e OLED](../../tests/test_terminal_spi/README.md)
+La [prova combinata con RFID e OLED](../../tests/integrazione/test_terminal_spi/README.md)
 aggiunge RC522 su SPI condiviso con il 595 e OLED su A4/A5 tramite lo stesso
 bus software delle prove display. Include tastierino e LED da banco; encoder,
 pulsanti display e impronta restano scollegati. È preparata, non ancora
 validata sull'hardware completo; alimentazione simultanea e latenze restano
 da misurare. Non costituisce il firmware di autenticazione del terminale.
 
-È disponibile una [prova da banco con tastierino e LED bicolore](../../tests/test_keypad_74hc595_two_color/README.md)
+È disponibile una [prova da banco con tastierino e LED bicolore](../../tests/tastierino/test_keypad_74hc595_two_color/README.md)
 su QF/QG del 595 (pin 5/6), con due resistenze aggiuntive da 1 kΩ. Non occupa
 altri GPIO Uno e non sostituisce il LED del varco comandato dal Pi. La prova
 con il modulo fotografato deve ancora essere eseguita; i colori dei due

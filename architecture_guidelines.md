@@ -53,16 +53,16 @@ a 5 V. La prova è stata eseguita senza condensatore da 100 nF, non disponibile.
 Nel piano di integrazione MOSI/SCK saranno condivisi con RFID e si recuperano
 D7, D8 e D9. Questa convivenza e il firmware completo restano da verificare;
 la prova del tastierino non valida tutto il terminale. Cablaggio ed evidenze in
-[tests/test_keypad_74hc595/README.md](tests/test_keypad_74hc595/README.md).
+[tests/tastierino/test_keypad_74hc595/README.md](tests/tastierino/test_keypad_74hc595/README.md).
 
 Per la prova combinata è disponibile
-[tests/test_terminal_spi](tests/test_terminal_spi/README.md): tastierino,
+[tests/integrazione/test_terminal_spi](tests/integrazione/test_terminal_spi/README.md): tastierino,
 74HC595, LED da banco, RC522 su SPI condiviso e OLED su A4/A5 con bus software
 senza pull-up a 5 V. Preparata e controllata in simulazione, non ancora
 validata sul montaggio completo; encoder, pulsanti display e impronta non
 sono gestiti. Non implementa autenticazione o decisioni di accesso.
 
-La successiva [variante richiesta con pin RFID personalizzati](tests/test_terminal_soft_spi/README.md)
+La successiva [variante richiesta con pin RFID personalizzati](tests/integrazione/test_terminal_soft_spi/README.md)
 usa SPI software: SDA/SS D12, SCK D10, MOSI D9, MISO D8. Il 595 conserva
 D11/D13; il protocollo carte è gestito da MFRC522v2, mentre il trasporto GPIO
 è specifico della prova. La lettura del badge è confermata dall'utente;
@@ -220,7 +220,7 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 | Argomento                   | Domande per il gruppo                                            | Vincoli o alternative da valutare                                                                                                                                        | Decisione del gruppo                                                                                                                                                                                                                                                                                       |
 | --------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Inventario hardware | Quali modelli e quantità abbiamo? | Elegoo Uno R3, due Raspberry Pi Zero W, lettore SPI MFRC522, sensore ottico AS608, tastierino 3×4, display OLED I²C con rotella e tasto OK, LED RGB. | Inventario rilevato. Mappare pin e verificare livelli elettrici prima del cablaggio completo. |
-| Badge | Quale autenticazione dimostriamo e quali garanzie dichiariamo? | UID e autenticazione di settore Crypto1 provati con gli sketch in `tests/test_rc522*`. Chiave di fabbrica pubblica; Crypto1 compromesso. | **Verificato il 18 novembre 2026** su entrambi i supporti: classificazione MIFARE 1KB e autenticazione del settore 1. Modelli esatti, cambio chiavi e collaudo del flusso completo restano aperti. |
+| Badge | Quale autenticazione dimostriamo e quali garanzie dichiariamo? | UID e autenticazione di settore Crypto1 provati con gli sketch in `tests/rfid/test_rc522*`. Chiave di fabbrica pubblica; Crypto1 compromesso. | **Verificato il 18 novembre 2026** su entrambi i supporti: classificazione MIFARE 1KB e autenticazione del settore 1. Modelli esatti, cambio chiavi e collaudo del flusso completo restano aperti. |
 | Biometria (proposta archiviata) | Quanti template associare a ogni operatore? | Partire da un template per operatore, acquisito seguendo la procedura del modulo. Provare 2 e poi fino a 5 solo se riducono i rifiuti legittimi in misura utile. Verificare sul modello reale capacità, confronto mirato agli slot dell’operatore, latenza e cancellazione. | Numero di slot da confermare con prove hardware. |
 | Firmware | Come sviluppiamo per l'Uno? | C/C++ e librerie compatibili con l'hardware. | **Arduino IDE confermato.** |
 | Servizio locale sul Pi | Quale linguaggio gestisce seriale, sessioni, policy e LED? | Python per seriale, GPIO, SQLite, verifica PIN, firma e MQTT. | **Python confermato.** Provare installazione delle librerie e prestazioni sul Pi Zero W. |
@@ -233,7 +233,7 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 
 #### Prime prove hardware
 
-1. **Badge RC522 — prove eseguite con limiti.** Con tre partitori sulle uscite dell'Uno sono riusciti il test SPI, la lettura UID/tipo PICC e l'autenticazione Crypto1 sui due supporti disponibili. Sketch in `tests/test_rc522_spi`, `tests/test_rc522` e `tests/test_rc522_auth`; cablaggio in [docs/hardware/rc522_mini_breadboard.md](docs/hardware/rc522_mini_breadboard.md). Restano aperti identificazione esatta dei chip, misure elettriche, stabilità prolungata, gestione delle chiavi e integrazione. La libreria MFRC522 standard non implementa l'autenticazione AES/3DES dei DESFire. [Libreria MFRC522](https://github.com/miguelbalboa/rfid)
+1. **Badge RC522 — prove eseguite con limiti.** Con tre partitori sulle uscite dell'Uno sono riusciti il test SPI, la lettura UID/tipo PICC e l'autenticazione Crypto1 sui due supporti disponibili. Sketch in `tests/rfid/test_rc522_spi`, `tests/rfid/test_rc522` e `tests/rfid/test_rc522_auth`; cablaggio in [docs/hardware/rc522_mini_breadboard.md](docs/hardware/rc522_mini_breadboard.md). Restano aperti identificazione esatta dei chip, misure elettriche, stabilità prolungata, gestione delle chiavi e integrazione. La libreria MFRC522 standard non implementa l'autenticazione AES/3DES dei DESFire. [Libreria MFRC522](https://github.com/miguelbalboa/rfid)
 2. **Prova storica AS608, esclusa dal piano 2FA.** Registrare due template distinti dello stesso dito in due slot. Durante il tentativo acquisire il dito una volta, estrarre le caratteristiche in un buffer e caricare nell'altro, in sequenza, i template associati all'operatore. Provare il confronto dopo ogni caricamento, verificando che il campione sia riutilizzabile e che un dito diverso venga respinto. Se i comandi non sono supportati sul modulo, rivalutare il flusso prima di fissare il numero di slot.
 3. **Terminale locale.** Integrare badge, PIN, una scansione e LED sul Pi con SQLite. In parallelo verificare Python → Node con la prova della firma. Collegare poi MQTT e il deposito del lotto.
 
@@ -246,7 +246,7 @@ gestita dal lettore e dalla libreria, non una challenge applicativa propria.
 La chiave di fabbrica è pubblica e Crypto1 è compromesso: questa prova non
 conferma un fattore di possesso robusto, né identifica con certezza i chip
 effettivi. Non è una decisione di adottare Crypto1 come protezione definitiva.
-Dettagli e limiti in [tests/test_rc522_auth/README.md](tests/test_rc522_auth/README.md);
+Dettagli e limiti in [tests/rfid/test_rc522_auth/README.md](tests/rfid/test_rc522_auth/README.md);
 riferimenti: [NXP MF1S50YYX_V1, rev. 3.2](https://www.nxp.com/docs/en/data-sheet/MF1S50YYX_V1.pdf)
 e [MFRC522, Security](https://github.com/miguelbalboa/rfid#security).
 

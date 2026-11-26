@@ -114,10 +114,10 @@ I partitori non sono la soluzione proposta per bus I²C bidirezionali.
 ## Avvio della prova
 
 1. Controllare i collegamenti a USB scollegata, inclusa l'assenza di fili sul 5V.
-2. Nell'Arduino IDE aprire prima `tests/test_rc522_spi/test_rc522_spi.ino`,
+2. Nell'Arduino IDE aprire prima `tests/rfid/test_rc522_spi/test_rc522_spi.ino`,
    selezionare Uno e la porta corretta; installare la libreria **MFRC522** se
    manca. Aprire il monitor seriale a **9600 baud** e verificare `PASS SPI`.
-3. Caricare poi `tests/test_rc522/test_rc522.ino`, mantenendo **9600 baud**.
+3. Caricare poi `tests/rfid/test_rc522/test_rc522.ino`, mantenendo **9600 baud**.
 4. Verificare la versione del lettore e avvicinare il badge; annotare il tipo
    PICC. Per ripetere la lettura, allontanare e riavvicinare il badge.
 5. Una versione `0x00` o `0xFF` indica mancata comunicazione secondo il test:

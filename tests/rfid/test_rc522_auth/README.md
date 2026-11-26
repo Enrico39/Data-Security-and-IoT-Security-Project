@@ -97,7 +97,7 @@ credenziale, ma non risolve le debolezze di Crypto1.
 
 L'impiego nella demo e l'eventuale passaggio a un sistema con autenticazione
 moderna restano aperti. La matrice riepilogativa è nelle
-[linee guida architetturali](../../architecture_guidelines.md#stato-della-challenge-e-delle-chiavi-del-badge).
+[linee guida architetturali](../../../architecture_guidelines.md#stato-della-challenge-e-delle-chiavi-del-badge).
 
 ## Fonti
 

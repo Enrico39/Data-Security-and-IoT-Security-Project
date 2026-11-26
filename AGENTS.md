@@ -21,7 +21,7 @@ Il repository è attualmente nella fase di definizione. Ricavare stack, struttur
 
 ## Hardware e verifiche aperte
 
-Il lettore acquistato è un RC522 MINI da 13,56 MHz, alimentato a 3,3 V e con interfaccia SPI. Il 18 novembre 2026 sono state verificate lettura e autenticazione di settore Crypto1 sui due supporti disponibili, compatibili con MIFARE Classic 1K. Modelli esatti dei chip e hardware del collega restano da identificare. Evidenze in `tests/test_rc522_auth/README.md` e stato dei punti aperti in `architecture_guidelines.md`.
+Il lettore acquistato è un RC522 MINI da 13,56 MHz, alimentato a 3,3 V e con interfaccia SPI. Il 18 novembre 2026 sono state verificate lettura e autenticazione di settore Crypto1 sui due supporti disponibili, compatibili con MIFARE Classic 1K. Modelli esatti dei chip e hardware del collega restano da identificare. Evidenze in `tests/rfid/test_rc522_auth/README.md` e stato dei punti aperti in `architecture_guidelines.md`.
 
 La challenge-response Crypto1 è verificata funzionalmente, ma la chiave di fabbrica è pubblica e Crypto1 è compromesso: non dichiarare un fattore di possesso robusto. Il protocollo non diventa moderno cambiando soltanto la challenge nello sketch. La personalizzazione delle chiavi A/B è documentata ma non ancora provata sui supporti; un eventuale cambio richiede una procedura che verifichi permessi, bit di accesso e gestione degli errori, inclusi i possibili blocchi irreversibili. La scelta di usarla nella demo e l'eventuale hardware per autenticazione moderna restano aperti. Distinguere sempre lettura UID, autenticazione completata e garanzie contro clonazione/replay/relay; non dichiarare prove non eseguite.
 

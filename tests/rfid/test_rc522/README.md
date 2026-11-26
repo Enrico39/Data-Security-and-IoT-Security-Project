@@ -34,11 +34,11 @@ Il log seriale mostra due UID distinti letti con successo, entrambi classificati
 come MIFARE 1KB, e alcuni tentativi di selezione falliti. La causa degli errori
 resta indeterminata. In questa prova D10, D11 e D13 erano collegati senza
 partitori. Per il montaggio previsto dal progetto si usa lo
-[schema con adattamento da 5 V a 3,3 V](../../docs/hardware/rc522_mini_breadboard.md).
+[schema con adattamento da 5 V a 3,3 V](../../../docs/hardware/rc522_mini_breadboard.md).
 
 ## Preparazione comune
 
-- Mantenere [il cablaggio con i tre partitori](../../docs/hardware/rc522_mini_breadboard.md).
+- Mantenere [il cablaggio con i tre partitori](../../../docs/hardware/rc522_mini_breadboard.md).
 - Display, tastierino e sensore d'impronta restano scollegati.
 - Installare dal gestore librerie **MFRC522** (progetto miguelbalboa/rfid).
   Non serve MFRC522v2. Annotare la versione realmente installata.
