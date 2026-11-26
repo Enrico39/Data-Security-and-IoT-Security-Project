@@ -52,8 +52,10 @@ void loop() {
     Serial.println(F("Lettore raggiungibile. In attesa del badge..."));
   }
   if (!lettore.PICC_IsNewCardPresent()) return;
-  if (!lettore.PICC_ReadCardSerial()) {
-    Serial.println(F("Badge rilevato ma selezione fallita: allontana e riprova."));
+  const MFRC522::StatusCode status = lettore.PICC_Select(&lettore.uid);
+  if (status != MFRC522::STATUS_OK) {
+    Serial.print(F("Selezione badge fallita: "));
+    Serial.println(lettore.GetStatusCodeName(status));
     delay(200);
     return;
   }

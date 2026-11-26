@@ -1,10 +1,12 @@
 # Linee guida architetturali
 
+Dal 26 novembre 2026 il progetto usa due fattori, badge e PIN. Il banco attuale e lo sketch sono descritti nei [collegamenti del terminale](docs/hardware/current_wiring.md). Il [primo firmware del terminale](firmware/terminal_2fa/README.md) usa questo cablaggio e il protocollo USB descritto accanto allo sketch. Le prove AS608 restano in archivio.
+
 ## Schema dell'architettura
 
 ```mermaid
 flowchart LR
-    U["Operatore"] -->|"Badge, PIN e impronta"| A["Arduino Uno<br/>Lettore NFC, tastierino,<br/>sensore d'impronta e mini display<br/>con rotella e tasto OK"]
+    U["Operatore"] -->|"Badge e PIN"| A["Arduino Uno<br/>Lettore NFC, tastierino,<br/>mini display OLED"]
     A <-->|"USB seriale locale"| P["Raspberry Pi 1<br/>Verifica credenziali e applica la policy<br/>Firma gli eventi con ECDSA P-256"]
     P -->|"Comando GPIO"| L["LED rosso / verde<br/>Simulazione del varco"]
     P -->|"Eventi firmati via MQTT con mTLS"| B["PC<br/>Mosquitto e backend MERN<br/>Verifica firme e salva gli eventi"]
@@ -20,18 +22,15 @@ Il LED è rosso quando il varco simulato è bloccato. Se il Pi autorizza l'acces
 | Passo | Cosa fa o vede l'utente | Cosa succede nel prototipo |
 | --- | --- | --- |
 | 1. Avvicina il badge | Il display mostra «Avvicina il badge». Il LED è rosso. | Il lettore NFC passa l'UID all'Arduino, che lo inoltra al Pi. Il Pi cerca il badge, controlla che sia attivo e avvia una sessione breve associata all'operatore. |
-| 2. Inserisce il PIN | Digita sul tastierino, vede `••••` e preme CONFIRM. Il tasto `*` annulla il tentativo. | L'Arduino invia al Pi il PIN insieme all'ID della sessione sul collegamento seriale locale. Il Pi verifica il PIN e applica il limite ai tentativi. |
-| 3. Appoggia il dito | Il display mostra «Appoggia il dito». | Il Pi indica gli slot associati all'operatore del badge. L'utente appoggia il dito una volta. Se il sensore lo consente, confronta il campione con gli slot di quell'operatore. L'Arduino inoltra al Pi l'esito associato alla stessa sessione. |
-| 4. Riceve l'esito | Il display mostra «Accesso consentito» e il LED diventa verde, oppure mostra «Accesso negato» e il LED resta rosso. | Il Pi applica la policy locale, controllando ruolo, turno e revoca. Chiude la sessione dopo la decisione e registra l'esito. |
-| 5. Il terminale torna pronto | Dopo cinque secondi il LED torna rosso e il display torna a «Avvicina il badge». | Il Pi termina la finestra di accesso simulata e il terminale si prepara al tentativo successivo. |
+| 2. Inserisce il PIN | Digita sul tastierino, vede un asterisco per ogni cifra e preme `#`. Il tasto `*` cancella una cifra o annulla a campo vuoto. | L'Arduino invia al Pi il PIN insieme all'ID della sessione sul collegamento seriale locale. Il Pi verifica il PIN e applica il limite ai tentativi. |
+| 3. Riceve l'esito | Il display mostra «Accesso consentito» e il LED diventa verde, oppure mostra «Accesso negato» e il LED resta rosso. | Il Pi applica la policy locale, controllando ruolo, turno e revoca. Chiude la sessione dopo la decisione e registra l'esito. |
+| 4. Il terminale torna pronto | Dopo cinque secondi il LED torna rosso e il display torna a «Avvicina il badge». | Il Pi termina la finestra di accesso simulata e il terminale si prepara al tentativo successivo. |
 
 ### Comandi e assegnazione dei pin per l'integrazione
 
-**Riferimento attuale del banco, 19 novembre 2026:**
-[docs/hardware/current_wiring.md](docs/hardware/current_wiring.md) salva
-tastierino, 74HC595, LED e RFID con la mappa personalizzata. Impronta e
-schermo sono indicati dall'utente come ancora da collegare; la lettura RFID
-dopo la correzione software è confermata dall'utente.
+Per il cablaggio attuale seguire la [mappa a due fattori](docs/hardware/current_wiring.md).
+
+#### Configurazioni precedenti del 18 e 19 novembre
 
 **Decisione concordata il 18 novembre 2026:** lasciare scollegati `BACK` ed
 `ENCODER_PUSH` del modulo display. La rotazione della rotella scorre le voci,
@@ -39,11 +38,6 @@ dopo la correzione software è confermata dall'utente.
 annulla il tentativo di accesso. La pressione della rotella non esegue azioni.
 Il tasto `*` rimane collegato: eliminarne l'uso non libererebbe un pin della
 matrice 3×4.
-
-Badge → PIN → impronta → decisione del Pi resta il flusso previsto. Durante
-un tentativo, `*` deve annullare anche l'attesa dell'impronta: il Pi invalida
-la sessione e rifiuta eventuali risultati tardivi. Questa gestione deve essere
-implementata nel firmware/servizio integrato; non è ancora una prova superata.
 
 La mappa per la prova integrata usa tutti i **18 GPIO disponibili** dopo aver
 riservato D0/D1 alla UART collegata al convertitore USB–seriale dell'Uno.
@@ -95,14 +89,14 @@ nella sezione [Stato della challenge e delle chiavi del badge](#stato-della-chal
 
 ## Responsabilità hardware
 
-- **Elegoo Uno R3 - terminale utente.** Il firmware C/C++ si sviluppa con Arduino IDE. Legge NFC e tastierino, comunica con il sensore d'impronta e gestisce display, rotella e tasto OK. Invia gli input al Pi e mostra le istruzioni che riceve.
+- **Elegoo Uno R3 - terminale utente.** Il firmware C/C++ si sviluppa con Arduino IDE. Legge NFC e tastierino, gestisce il display OLED. Invia gli input al Pi e mostra le istruzioni che riceve.
 - **Raspberry Pi Zero W - controllore locale (Pi 1).** Il servizio gira in Python. Verifica il PIN, associa i risultati alla stessa sessione, applica la policy, comanda il LED tramite GPIO e firma gli eventi di audit. I LED sono collegati al Pi perché è il Pi a prendere la decisione.
 - **PC - Mosquitto e backend MERN.** Riceve gli eventi, verifica le firme, li salva e invia periodicamente allo smart contract l'hash di un lotto di eventi.
 - **Contratto Solidity - registro degli hash.** Si sviluppa e si testa con Hardhat. Registra gli hash pubblicati dall'account autorizzato del backend. Chi dispone degli eventi originali può ricalcolare l'hash e confrontarlo con quello registrato.
 
 ### Installazione a incasso di riferimento
 
-Il pannello a vista ospita il display e le interfacce per badge, PIN e impronta. Arduino Uno e Raspberry Pi 1 sono alloggiati nella parete, dietro il pannello, con il cavo USB e i connettori interni. Per la demo con PIN fittizi assumiamo che il vano sia accessibile solo a chi si occupa della manutenzione. Con questa ipotesi, la seriale può viaggiare in chiaro.
+Il pannello a vista ospita il display e le interfacce per badge e PIN. Arduino Uno e Raspberry Pi 1 sono alloggiati nella parete, dietro il pannello, con il cavo USB e i connettori interni. Per la demo con PIN fittizi assumiamo che il vano sia accessibile solo a chi si occupa della manutenzione. Con questa ipotesi, la seriale può viaggiare in chiaro.
 
 L'incasso da solo non garantisce il perimetro fidato. Se rimuovere il frontale dà accesso al cavo o al bus del sensore, quei collegamenti vanno valutati separatamente. Il Pi controlla comunque fase e ID di sessione di ogni messaggio.
 
@@ -111,11 +105,11 @@ L'incasso da solo non garantisce il perimetro fidato. Se rimuovere il frontale d
 | Collegamento | Cosa viene mandato | Come viene protetto |
 | --- | --- | --- |
 | Periferiche ↔ Arduino | UID dal lettore, tasti premuti, comandi ed esito del sensore, istruzioni per il display. | I cablaggi interni rientrano nel perimetro fidato della demo. Un eventuale canale protetto Arduino-Pi copre la sola seriale USB. Il bus del sensore ha un perimetro di fiducia separato. |
-| Arduino ↔ Pi 1 | UID, PIN, richiesta di verifica di un template, risultato biometrico e istruzioni per il display. | Per la demo con dati fittizi, la seriale può rientrare nel perimetro fidato se schede, cavo e connettori sono protetti e l'accesso fisico al bus è fuori dal modello di minaccia. Il Pi valida tipo, fase e ID sessione dei messaggi. Se il collegamento è esposto a lettura o iniezione, usare un canale autenticato e cifrato, con protezione contro il replay. |
+| Arduino ↔ Pi 1 | UID, PIN e istruzioni per il display. | Per la demo con dati fittizi, la seriale può rientrare nel perimetro fidato se schede, cavo e connettori sono protetti e l'accesso fisico al bus è fuori dal modello di minaccia. Il Pi valida tipo, fase e ID sessione dei messaggi. Se il collegamento è esposto a lettura o iniezione, usare un canale autenticato e cifrato, con protezione contro il replay. |
 | Pi 1 ↔ broker MQTT | Eventi di audit con ID pseudonimo, esito, orario, numero progressivo e versione della policy. | TLS 1.3 con mTLS cifra il traffico e autentica sia il gateway sia il broker tramite certificati. Il broker limita il gateway al topic assegnato. Il Pi firma inoltre gli eventi con ECDSA P-256, così la firma resta verificabile anche dopo il salvataggio. Riferimento: RFC 9846. |
 | Backend → smart contract | Hash del lotto di eventi. | Il backend verifica le firme prima di calcolare l'hash e usa il proprio account autorizzato per registrarlo. Gli eventi completi restano nel database. |
 
-### Prova dei template biometrici
+### Archivio della precedente proposta biometrica
 
 Il badge identifica l'operatore e il Pi seleziona soltanto gli slot biometrici associati a lui. Con un template si fa un confronto 1:1. Con più template si confronta il campione con gli slot di quella persona, se il sensore lo permette. Evitare la ricerca indiscriminata nella memoria del sensore.
 
@@ -131,7 +125,7 @@ Nel registro si prevedono eventi come `ACCESS_GRANTED`, `ACCESS_DENIED` ed event
 
 ## Funzionamento offline
 
-Se cade il Wi-Fi, il Pi continua a verificare badge, PIN e impronta e a comandare il LED finché la policy locale è valida. Conserva gli eventi firmati in una coda locale e li sincronizza quando torna la rete. Una revoca fatta sul backend durante la disconnessione arriva al Pi alla riconnessione. La scadenza della policy limita il tempo per cui il gateway può usare le informazioni già in suo possesso.
+Se cade il Wi-Fi, il Pi continua a verificare badge e PIN e a comandare il LED finché la policy locale è valida. Conserva gli eventi firmati in una coda locale e li sincronizza quando torna la rete. Una revoca fatta sul backend durante la disconnessione arriva al Pi alla riconnessione. La scadenza della policy limita il tempo per cui il gateway può usare le informazioni già in suo possesso.
 
 ## Prove dimostrative
 
@@ -229,7 +223,7 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 | --------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Inventario hardware | Quali modelli e quantità abbiamo? | Elegoo Uno R3, due Raspberry Pi Zero W, lettore SPI MFRC522, sensore ottico AS608, tastierino 3×4, display OLED I²C con rotella e tasto OK, LED RGB. | Inventario rilevato. Mappare pin e verificare livelli elettrici prima del cablaggio completo. |
 | Badge | Quale autenticazione dimostriamo e quali garanzie dichiariamo? | UID e autenticazione di settore Crypto1 provati con gli sketch in `tests/test_rc522*`. Chiave di fabbrica pubblica; Crypto1 compromesso. | **Verificato il 18 novembre 2026** su entrambi i supporti: classificazione MIFARE 1KB e autenticazione del settore 1. Modelli esatti, cambio chiavi e impiego nel flusso completo restano da verificare/decidere. |
-| Biometria | Quanti template associare a ogni operatore? | Partire da un template per operatore, acquisito seguendo la procedura del modulo. Provare 2 e poi fino a 5 solo se riducono i rifiuti legittimi in misura utile. Verificare sul modello reale capacità, confronto mirato agli slot dell’operatore, latenza e cancellazione. | Numero di slot da confermare con prove hardware. |
+| Biometria (proposta archiviata) | Quanti template associare a ogni operatore? | Partire da un template per operatore, acquisito seguendo la procedura del modulo. Provare 2 e poi fino a 5 solo se riducono i rifiuti legittimi in misura utile. Verificare sul modello reale capacità, confronto mirato agli slot dell’operatore, latenza e cancellazione. | Numero di slot da confermare con prove hardware. |
 | Firmware | Come sviluppiamo per l'Uno? | C/C++ e librerie compatibili con l'hardware. | **Arduino IDE confermato.** |
 | Servizio locale sul Pi | Quale linguaggio gestisce seriale, sessioni, policy e LED? | Python per seriale, GPIO, SQLite, verifica PIN, firma e MQTT. | **Python confermato.** Provare installazione delle librerie e prestazioni sul Pi Zero W. |
 | Messaggi seriali | Come riconosciamo messaggi completi, malformati o fuori fase? | Messaggi testuali con campi separati da `\|` e fine riga `\n`. Limitare la lunghezza, validare tipo e campi, conservare gli zeri iniziali del PIN e verificare fase, ID sessione e timeout. La risposta del Pi indica il passo successivo o l’errore. | **Scelto per la demo.** |
@@ -242,7 +236,7 @@ Per ciascun algoritmo scelto aggiungere riferimento ufficiale e libreria/version
 #### Prime prove hardware
 
 1. **Badge RC522 — prove eseguite con limiti.** Con tre partitori sulle uscite dell'Uno sono riusciti il test SPI, la lettura UID/tipo PICC e l'autenticazione Crypto1 sui due supporti disponibili. Sketch in `tests/test_rc522_spi`, `tests/test_rc522` e `tests/test_rc522_auth`; cablaggio in [docs/hardware/rc522_mini_breadboard.md](docs/hardware/rc522_mini_breadboard.md). Restano aperti identificazione esatta dei chip, misure elettriche, stabilità prolungata, gestione delle chiavi e integrazione. La libreria MFRC522 standard non implementa l'autenticazione AES/3DES dei DESFire. [Libreria MFRC522](https://github.com/miguelbalboa/rfid)
-2. **Impronta AS608.** Registrare due template distinti dello stesso dito in due slot. Durante il tentativo acquisire il dito una volta, estrarre le caratteristiche in un buffer e caricare nell'altro, in sequenza, i template associati all'operatore. Provare il confronto dopo ogni caricamento, verificando che il campione sia riutilizzabile e che un dito diverso venga respinto. Se i comandi non sono supportati sul modulo, rivalutare il flusso prima di fissare il numero di slot.
+2. **Prova storica AS608, esclusa dal piano 2FA.** Registrare due template distinti dello stesso dito in due slot. Durante il tentativo acquisire il dito una volta, estrarre le caratteristiche in un buffer e caricare nell'altro, in sequenza, i template associati all'operatore. Provare il confronto dopo ogni caricamento, verificando che il campione sia riutilizzabile e che un dito diverso venga respinto. Se i comandi non sono supportati sul modulo, rivalutare il flusso prima di fissare il numero di slot.
 3. **Terminale locale.** Integrare badge, PIN, una scansione e LED sul Pi con SQLite. In parallelo verificare Python → Node con la prova della firma. Collegare poi MQTT e il deposito del lotto.
 
 **Evidenza hardware del 18 novembre 2026.** Con RC522 MINI e libreria MFRC522,
@@ -269,7 +263,7 @@ e [MFRC522, Security](https://github.com/miguelbalboa/rfid#security).
 | Cambio della chiave di fabbrica | Le chiavi A/B sono configurabili per settore nel sector trailer, se l'autenticazione e i permessi correnti lo consentono. I test attuali non modificano chiavi né dati. | Capacità documentata, **non ancora provata sui supporti reali**. È una possibile miglioria della configurazione, non una correzione di Crypto1. |
 | Personalizzazione e gestione delle chiavi | Chiavi casuali distinte per badge/settore sono una proposta; servono memorizzazione locale esclusa da Git, distribuzione al verificatore, rotazione e recupero. | Da concordare. Definire Key A/Key B e permessi senza assumere che Key B sia sempre segreta o utilizzabile per autenticazione. |
 | Scrittura del sector trailer | Contiene chiavi e bit di accesso; un formato di accesso errato può bloccare irreversibilmente il settore. Key A non è recuperabile tramite una normale lettura del trailer. | Prima di una futura modifica: verificare permessi e codifica ridondante, conservare le chiavi note, prevedere errori/interruzioni e verificare nuova chiave accettata e vecchia rifiutata. Recupero non sempre possibile. Nessuna scrittura eseguita con questo aggiornamento documentale. |
-| Integrazione nel progetto | Le prove sono sketch isolati; non legano ancora l'esito del badge alla sessione breve di PIN e impronta sul Pi. | Da implementare dopo la decisione sul ruolo del badge. Distinguere esito Crypto1, identificazione UID e autorizzazione locale per ruolo/turno/revoca. |
+| Integrazione nel progetto | Le prove sono sketch isolati; non legano ancora l'esito del badge alla sessione breve del PIN sul Pi. | Da implementare dopo la decisione sul ruolo del badge. Distinguere esito Crypto1, identificazione UID e autorizzazione locale per ruolo/turno/revoca. |
 
 **Fonti primarie.** [NXP MF1S50YYX_V1, rev. 3.2, 23 maggio 2018](https://www.nxp.com/docs/en/data-sheet/MF1S50YYX_V1.pdf),
 sezioni 8.2, 8.6.3, 8.7.1 e 8.7.2, per autenticazione, sector trailer e

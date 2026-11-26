@@ -16,6 +16,26 @@ identifica con certezza il chip. Non sono ancora confermati dieci tentativi,
 più riavvii, una seconda carta o l'autenticazione del settore.
 La prova successiva è in [test_rc522_auth](../test_rc522_auth/README.md).
 
+## Cablaggio usato il 26 novembre 2026 per la prova del solo RC522 MINI
+
+Collegamenti riportati per il montaggio su breadboard fotografato durante la prova:
+
+| Elegoo Uno R3 | RC522 MINI | Collegamento |
+| --- | --- | --- |
+| D10 | SDA (SS) | Diretto |
+| D11 | MOSI | Diretto |
+| D12 | MISO | Diretto |
+| D13 | SCK | Diretto |
+| 3.3V | 3V3 e RST | Alimentazione e reset alto |
+| GND | GND | Massa comune |
+| — | IRQ | Scollegato |
+
+Il log seriale mostra due UID distinti letti con successo, entrambi classificati
+come MIFARE 1KB, e alcuni tentativi di selezione falliti. La causa degli errori
+resta indeterminata. In questa prova D10, D11 e D13 erano collegati senza
+partitori. Per il montaggio previsto dal progetto si usa lo
+[schema con adattamento da 5 V a 3,3 V](../../docs/hardware/rc522_mini_breadboard.md).
+
 ## Preparazione comune
 
 - Mantenere [il cablaggio con i tre partitori](../../docs/hardware/rc522_mini_breadboard.md).

@@ -1,4 +1,34 @@
-# Collegamenti attuali del banco — 19 novembre 2026
+# Banco a due fattori — 26 novembre 2026
+
+Elegoo Uno R3 con RC522 MINI, display HW-787AB e tastierino passivo 3×4.
+Lo [sketch di prova](../../tests/test_rc522_oled_pin/test_rc522_oled_pin.ino) usa badge → PIN.
+AS608, 74HC595, rotella e pulsanti del display sono scollegati.
+
+| Elemento | Collegamenti sull’Uno |
+|---|---|
+| RC522 MINI | SDA/SS → D10, MOSI → D11, MISO → D12, SCK → D13. 3V3 e RST → 3,3 V, GND comune, IRQ libero. |
+| Display | OLED_SDA → A4, OLED_SCL → A5, 3V3 → 3,3 V, GND comune. Lo sketch usa I²C software senza pull-up a 5 V. |
+| Tastierino, contatti 1–4 | Righe da cima a fondo → D7, D8, D9, A0 rispettivamente. |
+| Tastierino, contatti 5–7 | Colonne da sinistra a destra → A1, A2, A3 rispettivamente. Sette fili diretti, pull-up interne, nessun filo di alimentazione. |
+
+Per la numerazione del tastierino mantenere l’orientamento della
+[calibrazione originale](../../tests/test_keypad/README.md).
+D0/D1 sono riservati alla seriale USB. D2–D6 restano liberi.
+
+Nella prova RFID riferita il 26 novembre i segnali erano diretti, senza resistenze.
+Il cablaggio previsto usa un partitore su ciascuna uscita D10, D11 e D13:
+1 kΩ tra uscita Uno e ingresso RC522, 2 kΩ tra ingresso RC522 e massa.
+MISO è diretto. Il budget di corrente complessivo sulla linea 3,3 V resta da verificare.
+
+Per la prova presentare un badge, digitare il PIN fittizio `1234` e premere `#`.
+Ogni cifra resta visibile per 650 ms. Il tasto `*` cancella una cifra e, a campo vuoto,
+torna al badge. Il tentativo scade dopo 30 secondi dalla lettura del badge.
+Lo sketch accetta qualunque UID leggibile. L’associazione badge-operatore,
+la verifica del PIN sul Pi e la decisione secondo ruolo, turno e revoca appartengono al progetto.
+
+---
+
+## Archivio del banco — 19 novembre 2026
 
 **Riferimento per riprendere il montaggio senza rifare i collegamenti.**
 Configurazione con Uno, 74HC595, tastierino, LED bicolore e RC522 MINI sui
