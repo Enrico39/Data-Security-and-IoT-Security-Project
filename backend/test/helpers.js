@@ -37,7 +37,7 @@ export function makeEvent(overrides = {}) {
     ts: '2026-11-25T10:00:00.000Z',
     type: 'ACCESS_GRANTED',
     subject: DEMO_SUBJECT,
-    factors: { badge: 'ok', pin: 'ok', bio: 'ok' },
+    factors: { badge: 'ok', pin: 'ok' },
     policy_version: 7,
     policy_hash: DEMO_POLICY_HASH,
     online: true,

@@ -31,7 +31,6 @@ export const DENIAL_REASONS = Object.freeze([
   'BADGE_REVOKED',
   'PIN_WRONG',
   'PIN_LOCKED',
-  'BIO_MISMATCH',
   'OUT_OF_SHIFT',
   'ROLE_NOT_ALLOWED',
   'POLICY_EXPIRED',
@@ -42,8 +41,12 @@ export const DENIAL_REASONS = Object.freeze([
 /** Esiti ammessi per ciascun fattore di autenticazione. */
 const FACTOR_OUTCOMES = new Set(['ok', 'fail', 'skipped']);
 
-/** Fattori previsti nell'oggetto `factors`. */
-const FACTOR_NAMES = ['badge', 'pin', 'bio'];
+/**
+ * Fattori previsti nell'oggetto `factors`: il prototipo usa badge e PIN.
+ * Un futuro fattore biometrico richiede una nuova versione dello schema
+ * (docs/event-schema.md, §2.4); fino ad allora `bio` viene rifiutato.
+ */
+const FACTOR_NAMES = ['badge', 'pin'];
 
 /** Tutti i campi che possono comparire in un evento. */
 const ALLOWED_FIELDS = new Set([
@@ -110,7 +113,7 @@ function validateFactors(factors) {
   if (!isPlainObject(factors)) return fail('factors non è un oggetto');
   const keys = Object.keys(factors);
   if (keys.length !== FACTOR_NAMES.length || !FACTOR_NAMES.every((name) => keys.includes(name))) {
-    return fail('factors deve contenere esattamente badge, pin e bio');
+    return fail(`factors deve contenere esattamente ${FACTOR_NAMES.join(' e ')}`);
   }
   for (const name of FACTOR_NAMES) {
     if (!FACTOR_OUTCOMES.has(factors[name])) return fail(`esito non valido per il fattore ${name}`);

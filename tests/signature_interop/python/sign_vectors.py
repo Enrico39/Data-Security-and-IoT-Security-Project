@@ -258,7 +258,7 @@ def make_event(seq: int, ts: str, event_type: str, **extra) -> dict:
         "terminal_id": "term-01",
         "ts": ts,
         "subject": DEMO_SUBJECT,
-        "factors": {"pin": "ok", "badge": "ok", "bio": "ok"},
+        "factors": {"pin": "ok", "badge": "ok"},
         "policy_version": 7,
         "policy_hash": DEMO_POLICY_HASH,
         "online": True,

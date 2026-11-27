@@ -1,5 +1,7 @@
 # Analisi dello sketch di prova del sensore d'impronta AS608
 
+> **Documento archiviato.** Dal 26 novembre 2026 il prototipo usa due fattori, badge e PIN: il sensore AS608 è stato escluso perché non funzionava in modo affidabile. L'analisi resta come riferimento per un'eventuale reintroduzione del fattore biometrico, descritta in [`event-schema.md`, §2.4](event-schema.md#24-estensione-futura-fattore-biometrico).
+
 **Componente:** firmware Arduino Uno, sensore biometrico
 **Oggetto:** sketch di prova con menu seriale (registrazione, ricerca, cancellazione)
 **Riferimenti interni:** [`architecture_guidelines.md`](../architecture_guidelines.md), [`docs/lessons_learned.md`](lessons_learned.md), [`AGENTS.md`](../AGENTS.md)

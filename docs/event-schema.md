@@ -1,6 +1,6 @@
 # Formato degli eventi e interfaccia gateway ↔ backend
 
-**Stato:** bozza da approvare (v0.2, allineata alle decisioni della riunione dell'11 novembre 2026)
+**Stato:** bozza da approvare (v0.3, allineata alle decisioni della riunione dell'11 novembre 2026 e al terminale a due fattori, badge e PIN, adottato il 26 novembre 2026)
 **Ambito:** definisce l'unico punto di contatto fra la parte IoT (Arduino, Raspberry Pi 1) e la parte Data Security (backend, blockchain, DApp). Tutto ciò che sta prima della pubblicazione MQTT è responsabilità del gateway; tutto ciò che sta dopo è responsabilità del backend.
 
 **Componenti coinvolti** (da `architecture_guidelines.md`):
@@ -16,7 +16,7 @@
 
 ## 1. Principi
 
-1. **Minimizzazione.** Un evento non contiene mai: PIN, template o immagini dell'impronta, UID del badge in chiaro, nome dell'operatore.
+1. **Minimizzazione.** Un evento non contiene mai: PIN, UID del badge in chiaro, nome dell'operatore.
 2. **Pseudonimizzazione.** L'operatore è identificato da uno pseudonimo calcolato con una funzione a chiave (§3). Solo il titolare del trattamento, che possiede la chiave e l'anagrafica dei badge, può ricondurlo a una persona.
 3. **Firma alla fonte.** Ogni evento è firmato dal gateway nel momento in cui prende la decisione; la firma resta verificabile anche dopo il salvataggio nel database.
 4. **Idempotenza.** Il backend deve poter ricevere lo stesso evento più volte (ritrasmissioni, coda offline) senza duplicarlo.
@@ -39,7 +39,7 @@ L'evento viaggia come JSON UTF-8, in una busta che separa il contenuto dalla fir
     "ts": "2026-11-10T20:41:07.512Z",
     "type": "ACCESS_DENIED",
     "subject": "b3f1c9e0a7d4...e21f",
-    "factors": { "badge": "ok", "pin": "ok", "bio": "ok" },
+    "factors": { "badge": "ok", "pin": "ok" },
     "reason": "OUT_OF_SHIFT",
     "policy_version": 7,
     "policy_hash": "9c2e...41ab",
@@ -61,11 +61,11 @@ L'evento viaggia come JSON UTF-8, in una busta che separa il contenuto dalla fir
 | `v` | intero | sì | Versione di questo schema. Oggi `1`. |
 | `gateway_id` | stringa | sì | Identificativo del Raspberry Pi che decide. Deve coincidere con il topic MQTT (§5) e con il CN del certificato mTLS. |
 | `terminal_id` | stringa | sì | Terminale Arduino da cui proviene il tentativo. |
-| `seq` | intero ≥ 0 | sì | Numero progressivo **per gateway**, strettamente crescente, **persistito in SQLite sul Pi** (non si azzera al riavvio). Insieme a `gateway_id` identifica l'evento in modo univoco: l'ID evento è la coppia `(gateway_id, seq)`. |
+| `seq` | intero ≥ 1 | sì | Numero progressivo **per gateway**, strettamente crescente, **persistito in SQLite sul Pi** (non si azzera al riavvio). Il primo evento di un gateway ha `seq` = 1. Insieme a `gateway_id` identifica l'evento in modo univoco: l'ID evento è la coppia `(gateway_id, seq)`. |
 | `ts` | stringa | sì | Istante della decisione, RFC 3339 in UTC con millisecondi. |
 | `type` | enum | sì | Vedi §2.1. |
 | `subject` | stringa esadecimale | sì per gli eventi di accesso | Pseudonimo dell'operatore (§3). Assente solo negli eventi di sistema. Se il badge non è registrato si usa lo pseudonimo calcolato sull'UID letto, così i tentativi ripetuti con un badge sconosciuto restano correlabili senza esporre l'UID. |
-| `factors` | oggetto | sì per gli eventi di accesso | Esito di ciascun fattore: `ok`, `fail`, `skipped` (non richiesto perché un fattore precedente è fallito). |
+| `factors` | oggetto | sì per gli eventi di accesso | Esattamente due campi, `badge` e `pin`, ciascuno con esito `ok`, `fail` o `skipped` (non richiesto perché un fattore precedente è fallito o la sessione si è chiusa prima). |
 | `reason` | enum | sì se `ACCESS_DENIED` | Vedi §2.2. |
 | `policy_version` | intero | sì | Versione della policy applicata nella decisione. |
 | `policy_hash` | stringa esadecimale | sì | SHA-256 del documento di policy applicato (§6). Permette all'auditor di verificare on-chain che la policy usata fosse quella registrata. |
@@ -83,7 +83,35 @@ L'evento viaggia come JSON UTF-8, in una busta che separa il contenuto dalla fir
 
 ### 2.2 Motivi di diniego (`reason`)
 
-`BADGE_UNKNOWN`, `BADGE_REVOKED`, `PIN_WRONG`, `PIN_LOCKED` (superato il limite di tentativi), `BIO_MISMATCH`, `OUT_OF_SHIFT`, `ROLE_NOT_ALLOWED`, `POLICY_EXPIRED`, `TIMEOUT`, `CANCELLED` (l'utente ha scelto «Annulla»).
+`BADGE_UNKNOWN`, `BADGE_REVOKED`, `PIN_WRONG`, `PIN_LOCKED`, `OUT_OF_SHIFT`, `ROLE_NOT_ALLOWED`, `POLICY_EXPIRED`, `TIMEOUT`, `CANCELLED` (l'utente ha annullato con `*`).
+
+`PIN_LOCKED` indica che l'operatore è nel periodo di blocco dopo troppi PIN errati consecutivi, secondo la [politica dei tentativi del servizio Pi](../firmware/terminal_2fa/README.md#politica-proposta-per-il-servizio-pi). In questo caso il PIN non viene chiesto e `factors.pin` vale `skipped`.
+
+### 2.3 Esiti dei fattori per caso
+
+| Caso | `badge` | `pin` | `type` / `reason` |
+|---|---|---|---|
+| Badge e PIN corretti, policy soddisfatta | `ok` | `ok` | `ACCESS_GRANTED` |
+| Badge e PIN corretti, fuori turno o ruolo non ammesso | `ok` | `ok` | `ACCESS_DENIED` / `OUT_OF_SHIFT`, `ROLE_NOT_ALLOWED` |
+| Badge non registrato o revocato | `fail` | `skipped` | `ACCESS_DENIED` / `BADGE_UNKNOWN`, `BADGE_REVOKED` |
+| Operatore in blocco tentativi | `ok` | `skipped` | `ACCESS_DENIED` / `PIN_LOCKED` |
+| PIN errato | `ok` | `fail` | `ACCESS_DENIED` / `PIN_WRONG` |
+| Annullamento o tempo scaduto prima della verifica del PIN | `ok` | `skipped` | `ACCESS_DENIED` / `CANCELLED`, `TIMEOUT` |
+| Policy scaduta | `ok` | `skipped` | `ACCESS_DENIED` / `POLICY_EXPIRED` |
+
+Il backend controlla la struttura di `factors`, non la coerenza fra fattori e motivo: la tabella descrive ciò che il gateway deve produrre.
+
+### 2.4 Estensione futura: fattore biometrico
+
+Il sensore d'impronta è stato escluso dal prototipo perché non funzionava in modo affidabile. Lo schema resta predisposto a reintrodurlo come terzo fattore. In quel caso:
+
+1. `v` passa a `2` e `factors` acquista il campo `bio`, con gli stessi tre esiti;
+2. si aggiunge il motivo `BIO_MISMATCH`;
+3. il backend accetta entrambe le versioni durante la transizione, ciascuna con il proprio insieme di fattori;
+4. l'evento continua a non contenere template né immagini dell'impronta, che restano nel sensore;
+5. la valutazione privacy va rifatta: le impronte usate per identificare una persona sono dati biometrici, categoria particolare ai sensi dell'art. 9 GDPR, e richiedono una base giuridica specifica e una DPIA.
+
+Finché il fattore non esiste, il backend rifiuta qualunque evento che contenga `bio`.
 
 ---
 
@@ -115,7 +143,7 @@ La canonicalizzazione è necessaria perché due serializzazioni JSON dello stess
 | Pi (Python) | [`rfc8785`](https://pypi.org/project/rfc8785/) | `cryptography`: `private_key.sign(data, ec.ECDSA(hashes.SHA256()))` |
 | Backend (Node.js) | [`canonicalize`](https://www.npmjs.com/package/canonicalize) | `crypto.verify('sha256', data, { key, dsaEncoding: 'der' }, signature)` |
 
-Le versioni vanno fissate dopo la prima prova di interoperabilità.
+Versioni fissate dopo la prova di interoperabilità in `tests/signature_interop/`: `cryptography` 50.0.2 e `rfc8785` 0.1.4 sul Pi, `canonicalize` 5.1.0 sul backend.
 
 ### 4.2 Vettori di prova
 
@@ -210,8 +238,9 @@ Già decisi nella riunione dell'11 novembre: servizio del gateway in Python, bac
 Restano aperti:
 
 1. **Conservazione delle chiavi sul Pi:** chiave di firma ECDSA e `K_pseud` su file con permessi ristretti, oppure su un secure element (es. ATECC608)? Il limite va dichiarato.
-2. **Enrollment:** badge, PIN (verificatore Argon2id) e slot biometrici si registrano localmente sul Pi; al backend arrivano solo pseudonimo e ruolo?
+2. **Enrollment:** badge e PIN (verificatore Argon2id) si registrano localmente sul Pi; al backend arrivano solo pseudonimo e ruolo?
 3. **Più terminali:** uno o più terminali per gateway nella demo?
 4. **Parametri:** dimensione e durata dei lotti (*N*, *T*), validità della policy, tolleranza sull'orario.
 5. **Prestazioni sul Pi Zero W:** tempi di firma ECDSA, canonicalizzazione e Argon2id da misurare sull'hardware reale.
 6. **Albero di Merkle:** adozione per i lotti (§8).
+7. **Challenge del badge fallita:** il terminale segnala `BADGE_FAIL` senza un UID affidabile, quindi non c'è uno pseudonimo da registrare. Serve un evento di sistema (per esempio `BADGE_REJECTED`, senza `subject`) per contare i tentativi con carte incompatibili o clonate male?

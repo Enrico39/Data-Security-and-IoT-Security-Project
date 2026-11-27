@@ -11,7 +11,7 @@
       "id": "valid-granted",
       "description": "Accesso consentito, in turno, online.",
       "expected": "valid",
-      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"bio\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":true,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"seq\":1,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T08:15:02.120Z\",\"type\":\"ACCESS_GRANTED\",\"v\":1}",
+      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":true,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"seq\":1,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T08:15:02.120Z\",\"type\":\"ACCESS_GRANTED\",\"v\":1}",
       "envelope": {
         "event": {
           "type": "ACCESS_GRANTED",
@@ -24,8 +24,7 @@
           "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
           "factors": {
             "pin": "ok",
-            "badge": "ok",
-            "bio": "ok"
+            "badge": "ok"
           },
           "policy_version": 7,
           "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
@@ -34,7 +33,7 @@
         "sig": {
           "alg": "ES256",
           "kid": "gw-test-01-k1",
-          "value": "MEUCIENbTzwlIyEI+nayw2GY2LdeKuhlO3nfIuPha62vxYZYAiEArRfDi3+mMZd9PXU52lJ6xhj4gzENCDGVC3RLzzvXHZE="
+          "value": "MEUCIBQ+SdJLYrAer7QbULBoE48xP7Sa43JzQBZrnHAmWxucAiEAo/yWc5WpTRrRlNnIXCWjGU6XQ/NTva21l482MQ9QXqA="
         }
       }
     },
@@ -42,7 +41,7 @@
       "id": "valid-denied-out-of-shift",
       "description": "Accesso negato fuori turno.",
       "expected": "valid",
-      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"bio\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":true,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"reason\":\"OUT_OF_SHIFT\",\"seq\":2,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T20:41:07.512Z\",\"type\":\"ACCESS_DENIED\",\"v\":1}",
+      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":true,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"reason\":\"OUT_OF_SHIFT\",\"seq\":2,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T20:41:07.512Z\",\"type\":\"ACCESS_DENIED\",\"v\":1}",
       "envelope": {
         "event": {
           "type": "ACCESS_DENIED",
@@ -55,8 +54,7 @@
           "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
           "factors": {
             "pin": "ok",
-            "badge": "ok",
-            "bio": "ok"
+            "badge": "ok"
           },
           "policy_version": 7,
           "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
@@ -66,7 +64,7 @@
         "sig": {
           "alg": "ES256",
           "kid": "gw-test-01-k1",
-          "value": "MEUCIGxdFomgvPqI4fGKPPn4RBpucm832lY1qGfj+pvWCZI+AiEA0cODSSUWCx/bhSdfJ7yvF1rQJSOceaEJq2wDbOdUITg="
+          "value": "MEQCIEjp+Wu5kF0A98kPUsaHpjf48N184xJXDDWj9mwTNohmAiBu2MaFXwdvVFvCWndeiFbd16Lp3FNAv1h4JCEm4DeQeg=="
         }
       }
     },
@@ -74,7 +72,7 @@
       "id": "valid-granted-offline",
       "description": "Accesso consentito durante una disconnessione.",
       "expected": "valid",
-      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"bio\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":false,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"seq\":3,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T09:02:44.003Z\",\"type\":\"ACCESS_GRANTED\",\"v\":1}",
+      "canonical": "{\"ctx\":\"unisa-ac/event/v1\",\"factors\":{\"badge\":\"ok\",\"pin\":\"ok\"},\"gateway_id\":\"gw-test-01\",\"online\":false,\"policy_hash\":\"8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4\",\"policy_version\":7,\"seq\":3,\"subject\":\"d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352\",\"terminal_id\":\"term-01\",\"ts\":\"2026-11-16T09:02:44.003Z\",\"type\":\"ACCESS_GRANTED\",\"v\":1}",
       "envelope": {
         "event": {
           "type": "ACCESS_GRANTED",
@@ -87,8 +85,7 @@
           "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
           "factors": {
             "pin": "ok",
-            "badge": "ok",
-            "bio": "ok"
+            "badge": "ok"
           },
           "policy_version": 7,
           "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
@@ -97,7 +94,7 @@
         "sig": {
           "alg": "ES256",
           "kid": "gw-test-01-k1",
-          "value": "MEQCIAi7YY53nGBq790J2sejQbR7mm89/vjU7mr2odQc0YQAAiApQw5usSyfqPNHASKWx/ESo/K/UCcVwyqhtrtU8L4ziA=="
+          "value": "MEUCIQDhf3r9OJz/4d4NVqd6JxNgbAK76J3DmNJB/e4dS/M9rwIgPdE5wa7WYbCm2TYrU86uFMacSmYPfemFEEdRXXE/HNQ="
         }
       }
     },
@@ -118,8 +115,7 @@
           "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
           "factors": {
             "pin": "ok",
-            "badge": "ok",
-            "bio": "ok"
+            "badge": "ok"
           },
           "policy_version": 7,
           "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
@@ -128,7 +124,7 @@
         "sig": {
           "alg": "ES256",
           "kid": "gw-test-01-k1",
-          "value": "MEUCIGxdFomgvPqI4fGKPPn4RBpucm832lY1qGfj+pvWCZI+AiEA0cODSSUWCx/bhSdfJ7yvF1rQJSOceaEJq2wDbOdUITg="
+          "value": "MEQCIEjp+Wu5kF0A98kPUsaHpjf48N184xJXDDWj9mwTNohmAiBu2MaFXwdvVFvCWndeiFbd16Lp3FNAv1h4JCEm4DeQeg=="
         }
       }
     },
@@ -149,8 +145,7 @@
           "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
           "factors": {
             "pin": "ok",
-            "badge": "ok",
-            "bio": "ok"
+            "badge": "ok"
           },
           "policy_version": 7,
           "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",
@@ -159,7 +154,7 @@
         "sig": {
           "alg": "ES256",
           "kid": "gw-test-01-k1",
-          "value": "MEQCICSHcnY09zIRwsmwuV/R+NYrgwqBVxepjahkD05x1dvVAiA6+T4rO6R8ujdYRCDQPCJxNTc5sGqrPC/Yz04jhphXuQ=="
+          "value": "MEQCICeey9mVMzZSclewiUN0W98w5KdMeaQSe5aySWUaAEMZAiB1G0ateWJ47JyMjKomDNynTrdS2TZaIAeCAthm+C2hqg=="
         }
       }
     },
@@ -180,8 +175,7 @@
           "subject": "d05b954ea98f027c494504bd6d3bfd8758ae1a82d7001709572db0cb85e99352",
           "factors": {
             "pin": "ok",
-            "badge": "ok",
-            "bio": "ok"
+            "badge": "ok"
           },
           "policy_version": 7,
           "policy_hash": "8e41a5d6d32e78558d70f8e7e6bc2cb67cf3933c51634b4468d8f38f50d14ed4",

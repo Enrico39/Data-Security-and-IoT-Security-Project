@@ -55,9 +55,18 @@ describe('validateEvent', () => {
     assert.equal(validateEvent(makeEvent({ reason: 'OUT_OF_SHIFT' })).ok, false);
   });
 
-  it('richiede tutti e tre i fattori con esiti ammessi', () => {
-    assert.equal(validateEvent(makeEvent({ factors: { badge: 'ok', pin: 'ok' } })).ok, false);
-    assert.equal(validateEvent(makeEvent({ factors: { badge: 'ok', pin: 'ok', bio: 'forse' } })).ok, false);
+  it('richiede esattamente badge e PIN con esiti ammessi', () => {
+    assert.equal(validateEvent(makeEvent({ factors: { badge: 'ok' } })).ok, false);
+    assert.equal(validateEvent(makeEvent({ factors: { badge: 'ok', pin: 'forse' } })).ok, false);
+    assert.equal(validateEvent(makeEvent({ factors: { badge: 'ok', pin: 'skipped' } })).ok, true);
+  });
+
+  it('rifiuta il fattore biometrico, non previsto nella versione 1', () => {
+    assert.equal(validateEvent(makeEvent({ factors: { badge: 'ok', pin: 'ok', bio: 'ok' } })).ok, false);
+    assert.equal(
+      validateEvent(makeEvent({ type: 'ACCESS_DENIED', reason: 'BIO_MISMATCH' })).ok,
+      false,
+    );
   });
 
   it('rifiuta pseudonimi che non sono 64 cifre esadecimali', () => {
